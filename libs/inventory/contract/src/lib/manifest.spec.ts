@@ -1,6 +1,6 @@
 import { permissionKeys } from '@dax/contracts';
 import { describe, expect, it } from 'vitest';
-import { inventoryManifest } from './manifest.js';
+import { inventoryManifest } from './manifest';
 
 describe('inventoryManifest', () => {
   it('declares the phase 1 permissions', () => {

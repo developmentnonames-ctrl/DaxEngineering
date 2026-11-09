@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { formatDocNumber } from './doc-number.js';
-import { fiscalYearOf } from './fiscal-year.js';
+import { formatDocNumber } from './doc-number';
+import { fiscalYearOf } from './fiscal-year';
 
 describe('fiscalYearOf', () => {
   it('uses the April start in Colombo time', () => {

@@ -23,8 +23,16 @@
     }
   },
   "dependencies": {
+    "@dax/platform-contract": "workspace:*",
+    "@dax/web-data-access": "workspace:*",
+    "@dax/web-shell": "workspace:*",
+    "@mantine/core": "9.7.5",
+    "@mantine/hooks": "9.7.5",
+    "better-auth": "1.7.18",
     "next": "~16.4.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-qr-code": "2.2.0",
+    "server-only": "^0.0.1"
   }
 }

@@ -64,5 +64,16 @@
     "eslint.config.js",
     "eslint.config.cjs",
     "eslint.config.mjs"
+  ],
+  "references": [
+    {
+      "path": "../../libs/web-platform/shell"
+    },
+    {
+      "path": "../../libs/web-platform/data-access"
+    },
+    {
+      "path": "../../libs/platform/contract"
+    }
   ]
 }

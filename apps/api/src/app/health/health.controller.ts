@@ -5,9 +5,11 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import type { HealthStatus } from '@dax/contracts';
+import { Public } from '@dax/platform-core';
 import { PrismaService } from '@dax/platform-db';
 
 @Controller('health')
+@Public()
 export class HealthController {
   constructor(private readonly db: PrismaService) {}
 

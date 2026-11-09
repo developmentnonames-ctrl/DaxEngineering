@@ -22,5 +22,13 @@
       "scope:platform",
       "type:web"
     ]
+  },
+  "dependencies": {
+    "@dax/platform-contract": "workspace:*",
+    "@mantine/core": "9.7.5",
+    "@mantine/hooks": "9.7.5",
+    "better-auth": "1.7.18",
+    "react": "^19.3.1",
+    "react-qr-code": "2.2.0"
   }
 }

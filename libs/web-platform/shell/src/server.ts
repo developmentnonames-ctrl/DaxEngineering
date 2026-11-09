@@ -1,1 +1,1 @@
-export * from './lib/hello-server';
+export {};

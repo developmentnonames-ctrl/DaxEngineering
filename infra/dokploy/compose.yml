@@ -45,15 +45,28 @@ services:
       API_PORT: '3000'
       LOG_LEVEL: ${LOG_LEVEL:-info}
       DATABASE_URL: postgresql://dax_app:${DAX_APP_PASSWORD}@postgres:5432/dax
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set in Dokploy}
+      INTERNAL_TOKEN_WEB: ${INTERNAL_TOKEN_WEB:?set in Dokploy}
+      INTERNAL_TOKEN_ADMIN: ${INTERNAL_TOKEN_ADMIN:?set in Dokploy}
+      WEB_ORIGIN: ${WEB_ORIGIN:?set in Dokploy}
+      ADMIN_ORIGIN: ${ADMIN_ORIGIN:?set in Dokploy}
+      RESEND_API_KEY: ${RESEND_API_KEY:?set in Dokploy}
+      MAIL_FROM: ${MAIL_FROM:?set in Dokploy}
+      BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
     depends_on:
       migrate: { condition: service_completed_successfully }
-    networks: [backend]
+    networks: [backend, egress]
 
   web:
     <<: *hardening
     image: ${IMAGE_REGISTRY}/dax-web:${IMAGE_TAG}
     environment:
       API_INTERNAL_URL: http://api:3000
+      INTERNAL_TOKEN_WEB: ${INTERNAL_TOKEN_WEB}
+      WEB_ORIGIN: ${WEB_ORIGIN}
     tmpfs: ['/tmp', '/app/apps/web/.next/cache']
     depends_on: [api]
     networks: [backend, dokploy-network]
@@ -63,6 +76,8 @@ services:
     image: ${IMAGE_REGISTRY}/dax-admin:${IMAGE_TAG}
     environment:
       API_INTERNAL_URL: http://api:3000
+      INTERNAL_TOKEN_ADMIN: ${INTERNAL_TOKEN_ADMIN}
+      ADMIN_ORIGIN: ${ADMIN_ORIGIN}
     tmpfs: ['/tmp', '/app/apps/admin/.next/cache']
     depends_on: [api]
     networks: [backend, dokploy-network]
@@ -73,5 +88,6 @@ volumes:
 networks:
   backend:
     internal: true
+  egress: {}
   dokploy-network:
     external: true

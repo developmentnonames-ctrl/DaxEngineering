@@ -2,7 +2,6 @@
   "name": "@dax/web-data-access",
   "version": "0.0.1",
   "private": true,
-  "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -26,6 +25,9 @@
     ]
   },
   "dependencies": {
+    "@dax/platform-contract": "workspace:*",
+    "next": "~16.4.5",
+    "react": "^19.3.1",
     "server-only": "^0.0.1"
   }
 }
