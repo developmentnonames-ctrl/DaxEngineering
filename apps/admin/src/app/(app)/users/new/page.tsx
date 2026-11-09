@@ -1,5 +1,4 @@
-import { Anchor, Stack, Title } from '@mantine/core';
-import { canDo } from '@dax/web-shell';
+import { canDo, PageHead } from '@dax/web-shell';
 import { getDepartments, getRoles } from '../../../../lib/data';
 import { requirePermission } from '../../../../lib/server';
 import { unlessForbidden } from '../../../../lib/load';
@@ -13,19 +12,25 @@ export default async function NewUserPage() {
     unlessForbidden(getDepartments(), []),
   ]);
   return (
-    <Stack maw={560}>
-      <Anchor href="/users" size="sm">
-        Back to users
-      </Anchor>
-      <Title order={2}>Add user</Title>
-      <NewUserForm
-        roles={roles
-          .filter((r) => !r.archived && (caps.isSuperAdmin || !r.isSuperAdmin))
-          .map((r) => ({ value: r.id, label: r.name }))}
-        departments={departments
-          .filter((d) => d.active)
-          .map((d) => ({ value: d.id, label: d.name }))}
+    <>
+      <PageHead
+        eyebrow="Admin · People"
+        title="Add user"
+        lede="They get an email with a link to set their password."
+        back={{ href: '/users', label: 'Users' }}
       />
-    </Stack>
+      <div style={{ maxWidth: 640 }}>
+        <NewUserForm
+          roles={roles
+            .filter(
+              (r) => !r.archived && (caps.isSuperAdmin || !r.isSuperAdmin),
+            )
+            .map((r) => ({ value: r.id, label: r.name }))}
+          departments={departments
+            .filter((d) => d.active)
+            .map((d) => ({ value: d.id, label: d.name }))}
+        />
+      </div>
+    </>
   );
 }

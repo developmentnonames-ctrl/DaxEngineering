@@ -1,9 +1,5 @@
 import {
-  Anchor,
-  Badge,
   Button,
-  Group,
-  Stack,
   Table,
   TableScrollContainer,
   TableTbody,
@@ -12,9 +8,17 @@ import {
   TableThead,
   TableTr,
   Text,
-  Title,
 } from '@mantine/core';
-import { canDo } from '@dax/web-shell';
+import Link from 'next/link';
+import {
+  canDo,
+  Chips,
+  Empty,
+  Icon,
+  PageHead,
+  Pill,
+  SectionCard,
+} from '@dax/web-shell';
 import { getRoles } from '../../../lib/data';
 import { requirePermission } from '../../../lib/server';
 
@@ -30,90 +34,92 @@ export default async function RolesPage({
   const canManage = canDo(caps, 'core.roles.manage');
 
   return (
-    <Stack>
-      <Group justify="space-between">
-        <Title order={2}>Roles</Title>
-        {canManage ? (
-          <Button component="a" href="/roles/new">
-            Add role
-          </Button>
-        ) : null}
-      </Group>
-      <Group gap="xs">
-        <Button
-          component="a"
-          href="/roles"
-          size="xs"
-          variant={showArchived ? 'default' : 'filled'}
-        >
-          Active
-        </Button>
-        <Button
-          component="a"
-          href="/roles?archived=1"
-          size="xs"
-          variant={showArchived ? 'filled' : 'default'}
-        >
-          Archived
-        </Button>
-      </Group>
-      {shown.length === 0 ? (
-        <Text c="dimmed">
-          {showArchived ? 'No archived roles.' : 'No roles yet.'}
-        </Text>
-      ) : (
-        <TableScrollContainer minWidth={640}>
-          <Table striped withTableBorder>
-            <TableThead>
-              <TableTr>
-                <TableTh>Role</TableTh>
-                <TableTh>Description</TableTh>
-                <TableTh />
-                <TableTh ta="right">Users</TableTh>
-              </TableTr>
-            </TableThead>
-            <TableTbody>
-              {shown.map((role) => (
-                <TableTr key={role.id}>
-                  <TableTd>
-                    <Anchor href={`/roles/${role.id}`} fw={500}>
-                      {role.name}
-                    </Anchor>
-                  </TableTd>
-                  <TableTd>
-                    <Text size="sm" c="dimmed" lineClamp={2}>
-                      {role.description ?? '—'}
-                    </Text>
-                  </TableTd>
-                  <TableTd>
-                    <Group gap={4}>
-                      {role.isSuperAdmin ? (
-                        <Badge color="red" variant="light">
-                          Super admin
-                        </Badge>
-                      ) : null}
-                      {role.isSystem ? (
-                        <Badge color="gray" variant="light">
-                          System
-                        </Badge>
-                      ) : null}
-                      {role.require2fa ? (
-                        <Badge color="blue" variant="light">
-                          Two-step required
-                        </Badge>
-                      ) : null}
-                      {role.archived ? (
-                        <Badge color="gray">Archived</Badge>
-                      ) : null}
-                    </Group>
-                  </TableTd>
-                  <TableTd ta="right">{role.userCount}</TableTd>
+    <>
+      <PageHead
+        eyebrow="Admin · Access"
+        title="Roles"
+        lede="A role is a set of permissions and field access. People get everything their roles allow."
+        actions={
+          canManage ? (
+            <Button
+              component="a"
+              href="/roles/new"
+              leftSection={<Icon name="plus" size={18} />}
+            >
+              Add role
+            </Button>
+          ) : null
+        }
+      />
+      <SectionCard
+        flush
+        title={showArchived ? 'Archived roles' : 'Active roles'}
+        note={`${shown.length} ${shown.length === 1 ? 'role' : 'roles'}`}
+        toolbar={
+          <Chips
+            items={[
+              { href: '/roles', label: 'Active', active: !showArchived },
+              {
+                href: '/roles?archived=1',
+                label: 'Archived',
+                active: showArchived,
+              },
+            ]}
+          />
+        }
+      >
+        {shown.length === 0 ? (
+          <div className="dax-card-body">
+            <Empty
+              title={showArchived ? 'No archived roles' : 'No roles yet'}
+            />
+          </div>
+        ) : (
+          <TableScrollContainer minWidth={640}>
+            <Table>
+              <TableThead>
+                <TableTr>
+                  <TableTh>Role</TableTh>
+                  <TableTh>Description</TableTh>
+                  <TableTh />
+                  <TableTh ta="right">Users</TableTh>
                 </TableTr>
-              ))}
-            </TableTbody>
-          </Table>
-        </TableScrollContainer>
-      )}
-    </Stack>
+              </TableThead>
+              <TableTbody>
+                {shown.map((role) => (
+                  <TableTr key={role.id}>
+                    <TableTd>
+                      <Link href={`/roles/${role.id}`} className="dax-link">
+                        {role.name}
+                      </Link>
+                    </TableTd>
+                    <TableTd>
+                      <Text size="sm" c="dimmed" lineClamp={2}>
+                        {role.description ?? '—'}
+                      </Text>
+                    </TableTd>
+                    <TableTd>
+                      <div className="dax-chips" style={{ gap: 4 }}>
+                        {role.isSuperAdmin ? (
+                          <Pill tone="bad">Super admin</Pill>
+                        ) : null}
+                        {role.isSystem ? <Pill>System</Pill> : null}
+                        {role.require2fa ? (
+                          <Pill tone="int">Two-step required</Pill>
+                        ) : null}
+                        {role.archived ? <Pill>Archived</Pill> : null}
+                      </div>
+                    </TableTd>
+                    <TableTd ta="right" className="dax-num">
+                      {role.userCount}
+                    </TableTd>
+                  </TableTr>
+                ))}
+              </TableTbody>
+            </Table>
+          </TableScrollContainer>
+        )}
+      </SectionCard>
+    </>
   );
 }

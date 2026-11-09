@@ -46,6 +46,12 @@ async function bootstrap(): Promise<void> {
 }
 
 bootstrap().catch((err: unknown) => {
-  console.error(err instanceof Error ? err.message : err);
+  console.error(
+    err instanceof Error
+      ? process.env['NODE_ENV'] === 'production'
+        ? err.message
+        : (err.stack ?? err.message)
+      : err,
+  );
   process.exit(1);
 });

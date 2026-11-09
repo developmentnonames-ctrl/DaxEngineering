@@ -1,18 +1,15 @@
 'use client';
 
 import {
-  Badge,
   Button,
   Checkbox,
-  Group,
-  Paper,
   Select,
   Stack,
   Table,
   Text,
-  Title,
   Tooltip,
 } from '@mantine/core';
+import { Pill, SectionCard } from '@dax/web-shell';
 import type { Dispatch, SetStateAction } from 'react';
 import type { CatalogAction, CatalogModule } from '../../../../lib/catalog';
 import { SCOPE_LABELS } from '../../../../lib/format';
@@ -122,94 +119,85 @@ export function PermissionMatrix({
     });
 
   return (
-    <Stack>
-      <Group justify="space-between" align="flex-end">
-        <div>
-          <Title order={3}>Permissions</Title>
-          <Text size="sm" c="dimmed">
-            Scope sets which records a permission covers: Own (records they
-            created), Department (records of their departments) or All.
-          </Text>
-        </div>
-        {readOnly ? null : (
-          <Group gap="xs">
-            <Button size="xs" variant="light" onClick={grantAllView}>
-              Grant all view actions
-            </Button>
-            <Button
-              size="xs"
-              variant="default"
-              onClick={() => setPermissions({})}
-            >
-              Clear all
-            </Button>
-          </Group>
-        )}
-      </Group>
+    <Stack gap="lg">
+      <SectionCard
+        title="Permissions"
+        note="Scope sets which records a permission covers: Own (records they created), Department (records of their departments) or All."
+        actions={
+          readOnly ? null : (
+            <>
+              <Button size="xs" variant="light" onClick={grantAllView}>
+                Grant all view actions
+              </Button>
+              <Button
+                size="xs"
+                variant="default"
+                onClick={() => setPermissions({})}
+              >
+                Clear all
+              </Button>
+            </>
+          )
+        }
+      />
       {modules.map((module) => {
         const columns = actionColumns(module);
         return (
-          <Paper key={module.key} withBorder p="md">
-            <Stack gap="xs">
-              <Group gap="xs">
-                <Title order={4}>{module.name}</Title>
-                {module.enabled ? null : (
-                  <Badge color="gray" variant="light">
-                    Off
-                  </Badge>
-                )}
-              </Group>
-              {module.enabled ? null : (
-                <Text size="xs" c="dimmed">
-                  This module is off. Its permissions take effect when it is
-                  turned on.
-                </Text>
-              )}
-              <Table.ScrollContainer minWidth={180 + columns.length * 150}>
-                <Table verticalSpacing="xs">
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th>Feature</Table.Th>
-                      {columns.map((c) => (
-                        <Table.Th key={c}>{humanize(c)}</Table.Th>
-                      ))}
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {module.features.map((feature) => (
-                      <Table.Tr key={feature.key}>
-                        <Table.Td fw={500}>{feature.name}</Table.Td>
-                        {columns.map((c) => {
-                          const action = feature.actions.find(
-                            (a) => a.action === c,
-                          );
-                          return (
-                            <Table.Td key={c}>
-                              {action ? (
-                                <ScopeCell
-                                  action={action}
-                                  featureName={feature.name}
-                                  value={permissions[action.permissionKey]}
-                                  readOnly={readOnly}
-                                  onChange={(scope) =>
-                                    setOne(action.permissionKey, scope)
-                                  }
-                                />
-                              ) : (
-                                <Text c="dimmed" size="sm">
-                                  —
-                                </Text>
-                              )}
-                            </Table.Td>
-                          );
-                        })}
-                      </Table.Tr>
+          <SectionCard
+            key={module.key}
+            flush
+            title={module.name}
+            note={
+              module.enabled
+                ? undefined
+                : 'This module is off. Its permissions take effect when it is turned on.'
+            }
+            actions={module.enabled ? undefined : <Pill>Off</Pill>}
+          >
+            <Table.ScrollContainer minWidth={180 + columns.length * 150}>
+              <Table verticalSpacing="xs">
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Feature</Table.Th>
+                    {columns.map((c) => (
+                      <Table.Th key={c}>{humanize(c)}</Table.Th>
                     ))}
-                  </Table.Tbody>
-                </Table>
-              </Table.ScrollContainer>
-            </Stack>
-          </Paper>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {module.features.map((feature) => (
+                    <Table.Tr key={feature.key}>
+                      <Table.Td fw={500}>{feature.name}</Table.Td>
+                      {columns.map((c) => {
+                        const action = feature.actions.find(
+                          (a) => a.action === c,
+                        );
+                        return (
+                          <Table.Td key={c}>
+                            {action ? (
+                              <ScopeCell
+                                action={action}
+                                featureName={feature.name}
+                                value={permissions[action.permissionKey]}
+                                readOnly={readOnly}
+                                onChange={(scope) =>
+                                  setOne(action.permissionKey, scope)
+                                }
+                              />
+                            ) : (
+                              <Text c="dimmed" size="sm">
+                                —
+                              </Text>
+                            )}
+                          </Table.Td>
+                        );
+                      })}
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </Table.ScrollContainer>
+          </SectionCard>
         );
       })}
     </Stack>

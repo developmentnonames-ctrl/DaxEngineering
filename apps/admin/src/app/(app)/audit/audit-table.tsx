@@ -2,18 +2,17 @@
 
 import {
   Alert,
-  Badge,
   Button,
   Code,
-  Group,
   Stack,
   Table,
   Text,
   UnstyledButton,
 } from '@mantine/core';
+import { Empty, Mono, Pill, SectionCard } from '@dax/web-shell';
 import { Fragment, useState, useTransition } from 'react';
 import type { AuditEntry, AuditPage } from '@dax/platform-contract';
-import { formatDateTime } from '../../../lib/format';
+import { formatDateTime, humanizeAction } from '../../../lib/format';
 import { loadMoreAudit } from './actions';
 import type { AuditFilters } from './query';
 
@@ -21,11 +20,6 @@ function display(value: unknown): string {
   if (value === null || value === undefined || value === '') return '—';
   if (typeof value === 'string') return value;
   return JSON.stringify(value);
-}
-
-function humanize(action: string): string {
-  const words = action.replace(/[._-]+/g, ' ').trim();
-  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 function diffKeys(entry: AuditEntry): string[] {
@@ -45,7 +39,7 @@ function EntryDiff({
   const keys = diffKeys(entry);
   const changed = new Set(entry.changedFields);
   return (
-    <Stack gap="xs" py="xs">
+    <Stack gap="xs" py="xs" className="dax-inset">
       {entry.reason ? (
         <Text size="sm">
           <Text span fw={600}>
@@ -62,7 +56,7 @@ function EntryDiff({
       ) : null}
       {keys.length ? (
         <Table.ScrollContainer minWidth={480}>
-          <Table withTableBorder fz="sm">
+          <Table fz="sm">
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Field</Table.Th>
@@ -80,11 +74,7 @@ function EntryDiff({
                 return (
                   <Table.Tr
                     key={key}
-                    bg={
-                      changed.has(key)
-                        ? 'var(--mantine-color-yellow-light)'
-                        : undefined
-                    }
+                    bg={changed.has(key) ? 'var(--dax-yel-soft)' : undefined}
                   >
                     <Table.Td>{fieldLabel(key)}</Table.Td>
                     <Table.Td>
@@ -93,7 +83,7 @@ function EntryDiff({
                           Hidden
                         </Text>
                       ) : (
-                        <Code>{display(before)}</Code>
+                        <Code ff="var(--dax-f-mono)">{display(before)}</Code>
                       )}
                     </Table.Td>
                     <Table.Td>
@@ -102,7 +92,7 @@ function EntryDiff({
                           Hidden
                         </Text>
                       ) : (
-                        <Code>{display(after)}</Code>
+                        <Code ff="var(--dax-f-mono)">{display(after)}</Code>
                       )}
                     </Table.Td>
                   </Table.Tr>
@@ -152,12 +142,21 @@ export function AuditTable({
     });
   };
 
-  if (!entries.length) return <Text c="dimmed">No entries match.</Text>;
+  if (!entries.length)
+    return (
+      <SectionCard title="Entries">
+        <Empty title="No entries match">Try different filters.</Empty>
+      </SectionCard>
+    );
 
   return (
-    <Stack>
+    <SectionCard
+      flush
+      title="Entries"
+      note="Times are Sri Lanka time. Select a time to see what changed."
+    >
       <Table.ScrollContainer minWidth={720}>
-        <Table striped withTableBorder verticalSpacing="xs">
+        <Table verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Time</Table.Th>
@@ -180,30 +179,31 @@ export function AuditTable({
                         onClick={() => setOpen(expanded ? null : entry.id)}
                         aria-expanded={expanded}
                       >
-                        <Text size="sm" c="blue">
+                        <Text size="sm" fw={600} c="var(--dax-int)">
                           {formatDateTime(entry.occurredAt)}
                         </Text>
                       </UnstyledButton>
                     </Table.Td>
                     <Table.Td>{entry.actorName ?? 'System'}</Table.Td>
                     <Table.Td>
-                      <Group gap={4}>
-                        {humanize(entry.action)}
+                      <div
+                        className="dax-chips"
+                        style={{ gap: 4, alignItems: 'center' }}
+                      >
+                        {humanizeAction(entry.action)}
                         {entry.restricted ? (
-                          <Badge size="xs" color="red" variant="light">
-                            Restricted
-                          </Badge>
+                          <Pill tone="bad">Restricted</Pill>
                         ) : null}
-                      </Group>
+                      </div>
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm">
                         {entityLabels[entry.entityKey] ?? entry.entityKey}
                       </Text>
                       {entry.entityId ? (
-                        <Text size="xs" c="dimmed" ff="monospace">
-                          {entry.entityId}
-                        </Text>
+                        <span className="dax-sub">
+                          <Mono>{entry.entityId}</Mono>
+                        </span>
                       ) : null}
                     </Table.Td>
                     <Table.Td>
@@ -225,17 +225,20 @@ export function AuditTable({
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>
-      <Text size="xs" c="dimmed">
-        Times are Sri Lanka time. Select a time to see what changed.
-      </Text>
-      {error ? <Alert color="red">{error}</Alert> : null}
-      {cursor ? (
-        <Group>
-          <Button variant="default" onClick={loadMore} loading={pending}>
-            Load more
-          </Button>
-        </Group>
+      {error || cursor ? (
+        <div className="dax-card-body" style={{ paddingTop: 12 }}>
+          <Stack gap="sm">
+            {error ? <Alert color="red">{error}</Alert> : null}
+            {cursor ? (
+              <div className="dax-pager">
+                <Button variant="default" onClick={loadMore} loading={pending}>
+                  Load more
+                </Button>
+              </div>
+            ) : null}
+          </Stack>
+        </div>
       ) : null}
-    </Stack>
+    </SectionCard>
   );
 }

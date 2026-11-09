@@ -1,18 +1,14 @@
 'use client';
 
 import {
-  Badge,
   Button,
-  Paper,
   SegmentedControl,
   Select,
   SimpleGrid,
   Stack,
   Table,
-  Text,
   Textarea,
   TextInput,
-  Title,
 } from '@mantine/core';
 import {
   startTransition,
@@ -23,6 +19,7 @@ import {
   useState,
 } from 'react';
 import type { OverrideDto } from '@dax/platform-contract';
+import { Empty, Pill, SectionCard } from '@dax/web-shell';
 import { StateAlert } from '../../../../components/state-alert';
 import {
   type ActionState,
@@ -51,11 +48,7 @@ export function OverridesPanel({
   permissions: PermissionGroup[];
 }) {
   return (
-    <Stack maw={900}>
-      <Text size="sm" c="dimmed">
-        Grant or deny a single permission for this user only. Deny always wins
-        over roles and grants.
-      </Text>
+    <Stack maw={960} gap="lg">
       <OverrideList userId={userId} canEdit={canEdit} overrides={overrides} />
       {canEdit ? (
         <AddOverrideForm userId={userId} permissions={permissions} />
@@ -77,18 +70,24 @@ function OverrideList({
     removeOverride,
     IDLE,
   );
+  const note =
+    'Grant or deny a single permission for this user only. Deny always wins over roles and grants.';
   if (overrides.length === 0) {
     return (
-      <Text size="sm" c="dimmed">
-        No overrides.
-      </Text>
+      <SectionCard title="Overrides" note={note}>
+        <Empty title="No overrides" />
+      </SectionCard>
     );
   }
   return (
-    <Stack gap="xs">
-      <StateAlert state={state} />
+    <SectionCard flush title="Overrides" note={note}>
+      {state.error || state.ok ? (
+        <div className="dax-card-tools">
+          <StateAlert state={state} />
+        </div>
+      ) : null}
       <Table.ScrollContainer minWidth={680}>
-        <Table withTableBorder striped>
+        <Table>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Effect</Table.Th>
@@ -103,9 +102,9 @@ function OverrideList({
             {overrides.map((o) => (
               <Table.Tr key={o.id}>
                 <Table.Td>
-                  <Badge color={o.effect === 'DENY' ? 'red' : 'green'}>
+                  <Pill tone={o.effect === 'DENY' ? 'bad' : 'ok'}>
                     {o.effect === 'DENY' ? 'Deny' : 'Grant'}
-                  </Badge>
+                  </Pill>
                 </Table.Td>
                 <Table.Td>{o.label}</Table.Td>
                 <Table.Td>{o.scope ? SCOPE_LABELS[o.scope] : '—'}</Table.Td>
@@ -135,7 +134,7 @@ function OverrideList({
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>
-    </Stack>
+    </SectionCard>
   );
 }
 
@@ -186,7 +185,7 @@ function AddOverrideForm({
   const err = (field: string) => fieldError(state, field);
 
   return (
-    <Paper withBorder p="lg">
+    <SectionCard title="Add override">
       <form
         ref={formRef}
         onSubmit={(e) => {
@@ -196,7 +195,6 @@ function AddOverrideForm({
         }}
       >
         <Stack>
-          <Title order={4}>Add override</Title>
           <StateAlert state={state} />
           <input type="hidden" name="userId" value={userId} />
           <input type="hidden" name="effect" value={effect} />
@@ -265,6 +263,6 @@ function AddOverrideForm({
           </Button>
         </Stack>
       </form>
-    </Paper>
+    </SectionCard>
   );
 }

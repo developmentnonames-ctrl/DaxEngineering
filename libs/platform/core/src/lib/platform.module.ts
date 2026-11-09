@@ -53,6 +53,9 @@ export interface PlatformOptions {
   controllers?: Type<unknown>[];
 }
 
+export const PUBLIC_ORIGINS = Symbol.for('dax.platform-core.public-origins');
+export type PublicOrigins = Record<'web' | 'admin', string>;
+
 @Module({})
 export class PlatformModule {
   static forRoot(options: PlatformOptions): DynamicModule {
@@ -79,6 +82,7 @@ export class PlatformModule {
       ],
       providers: [
         { provide: AUTH_OPTIONS, useValue: options.auth },
+        { provide: PUBLIC_ORIGINS, useValue: { ...options.auth.origins } },
         {
           provide: PLATFORM_CATALOG,
           useValue: { modules: options.catalog.modules, entities },
@@ -104,6 +108,7 @@ export class PlatformModule {
         ...(options.controllers ?? []),
       ],
       exports: [
+        PUBLIC_ORIGINS,
         AuthService,
         PolicyService,
         AuditService,

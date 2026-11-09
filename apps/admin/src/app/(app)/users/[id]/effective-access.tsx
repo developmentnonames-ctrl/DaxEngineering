@@ -1,8 +1,5 @@
 import {
   Alert,
-  Badge,
-  Group,
-  Paper,
   Stack,
   Table,
   TableScrollContainer,
@@ -11,10 +8,9 @@ import {
   TableTh,
   TableThead,
   TableTr,
-  Text,
-  Title,
 } from '@mantine/core';
 import type { AdminCatalog, EffectiveAccess } from '@dax/platform-contract';
+import { Empty, Pill, SectionCard } from '@dax/web-shell';
 import type { PermissionInfo } from '../../../../lib/catalog';
 import { SCOPE_LABELS } from '../../../../lib/format';
 
@@ -28,21 +24,13 @@ const SOURCE_LABELS: Record<
 };
 
 function FieldList({ names }: { names: string[] }) {
-  if (names.length === 0) {
-    return (
-      <Text size="sm" c="dimmed">
-        None
-      </Text>
-    );
-  }
+  if (names.length === 0) return <span className="dax-muted">None</span>;
   return (
-    <Group gap={4}>
+    <div className="dax-chips" style={{ gap: 4 }}>
       {names.map((n) => (
-        <Badge key={n} variant="light" color="gray">
-          {n}
-        </Badge>
+        <Pill key={n}>{n}</Pill>
       ))}
-    </Group>
+    </div>
   );
 }
 
@@ -64,88 +52,100 @@ export function EffectiveAccessView({
   );
 
   return (
-    <Stack maw={900}>
+    <Stack maw={960} gap="lg">
       {access.isSuperAdmin ? (
         <Alert color="red">Super admins have every permission.</Alert>
       ) : null}
-      <Text size="sm">
-        Two-step sign-in is{' '}
-        <strong>{access.require2fa ? 'required' : 'not required'}</strong> by
-        this user's roles.
-      </Text>
 
-      <Paper withBorder p="lg">
-        <Stack>
-          <Title order={4}>Permissions</Title>
-          {sorted.length === 0 ? (
-            <Text size="sm" c="dimmed">
-              No permissions.
-            </Text>
-          ) : (
-            <TableScrollContainer minWidth={560}>
-              <Table striped>
-                <TableThead>
-                  <TableTr>
-                    <TableTh>Permission</TableTh>
-                    <TableTh>Scope</TableTh>
-                    <TableTh>From</TableTh>
-                  </TableTr>
-                </TableThead>
-                <TableTbody>
-                  {sorted.map((p) => (
-                    <TableTr key={p.key}>
-                      <TableTd>{label(p.key)}</TableTd>
-                      <TableTd>{SCOPE_LABELS[p.scope]}</TableTd>
-                      <TableTd>{SOURCE_LABELS[p.source]}</TableTd>
-                    </TableTr>
-                  ))}
-                </TableTbody>
-              </Table>
-            </TableScrollContainer>
-          )}
-          {access.denied.length ? (
-            <Stack gap={4}>
-              <Text fw={600} size="sm">
-                Denied for this user
-              </Text>
-              <Group gap={4}>
-                {access.denied.map((key) => (
-                  <Badge key={key} color="red" variant="light">
-                    {label(key)}
-                  </Badge>
-                ))}
-              </Group>
-            </Stack>
-          ) : null}
-        </Stack>
-      </Paper>
-
-      <Paper withBorder p="lg">
-        <Stack>
-          <div>
-            <Title order={4}>Fields</Title>
-            <Text size="sm" c="dimmed">
-              Field access is the union of all roles: if any role can see a
-              field, this user can.
-            </Text>
+      <SectionCard
+        flush
+        title="Permissions"
+        note={
+          <>
+            Two-step sign-in is{' '}
+            <strong>{access.require2fa ? 'required' : 'not required'}</strong>{' '}
+            by this user&apos;s roles.
+          </>
+        }
+      >
+        {sorted.length === 0 ? (
+          <div className="dax-card-body">
+            <Empty title="No permissions" />
           </div>
+        ) : (
+          <TableScrollContainer minWidth={560}>
+            <Table>
+              <TableThead>
+                <TableTr>
+                  <TableTh>Permission</TableTh>
+                  <TableTh>Scope</TableTh>
+                  <TableTh>From</TableTh>
+                </TableTr>
+              </TableThead>
+              <TableTbody>
+                {sorted.map((p) => (
+                  <TableTr key={p.key}>
+                    <TableTd>{label(p.key)}</TableTd>
+                    <TableTd>{SCOPE_LABELS[p.scope]}</TableTd>
+                    <TableTd>
+                      <Pill
+                        tone={
+                          p.source === 'override'
+                            ? 'hi'
+                            : p.source === 'super_admin'
+                              ? 'bad'
+                              : 'int'
+                        }
+                      >
+                        {SOURCE_LABELS[p.source]}
+                      </Pill>
+                    </TableTd>
+                  </TableTr>
+                ))}
+              </TableTbody>
+            </Table>
+          </TableScrollContainer>
+        )}
+        {access.denied.length ? (
+          <div className="dax-card-body" style={{ paddingTop: 16 }}>
+            <div className="dax-eyebrow" style={{ marginBottom: 6 }}>
+              Denied for this user
+            </div>
+            <div className="dax-chips" style={{ gap: 4 }}>
+              {access.denied.map((key) => (
+                <Pill key={key} tone="bad">
+                  {label(key)}
+                </Pill>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </SectionCard>
+
+      <SectionCard
+        title="Fields"
+        note="Field access is the union of all roles: if any role can see a field, this user can."
+      >
+        <Stack gap="md">
           {Object.entries(access.fields).map(([entityKey, sets]) => (
-            <Stack key={entityKey} gap="xs">
-              <Text fw={600}>
-                {entities.get(entityKey)?.label ?? entityKey}
-              </Text>
-              <Text size="sm">Can see</Text>
+            <div key={entityKey} className="dax-inset">
+              <b>{entities.get(entityKey)?.label ?? entityKey}</b>
+              <div className="dax-eyebrow" style={{ margin: '8px 0 4px' }}>
+                Can see
+              </div>
               <FieldList
                 names={sets.read.map((n) => fieldLabel(entityKey, n))}
               />
-              <Text size="sm">Can change</Text>
+              <div className="dax-eyebrow" style={{ margin: '10px 0 4px' }}>
+                Can change
+              </div>
               <FieldList
                 names={sets.write.map((n) => fieldLabel(entityKey, n))}
               />
-            </Stack>
+            </div>
           ))}
         </Stack>
-      </Paper>
+      </SectionCard>
     </Stack>
   );
 }

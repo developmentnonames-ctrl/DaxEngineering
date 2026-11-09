@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Group, Stack, Text, TextInput, Title } from '@mantine/core';
+import { Button, Group, Stack, Text, TextInput } from '@mantine/core';
 import { useActionState } from 'react';
 import {
   type ActionState,
@@ -22,7 +22,7 @@ export function CopyRoleForm({
   return (
     <form action={dispatch}>
       <Stack gap="xs">
-        <Title order={4}>Copy role</Title>
+        <Text fw={600}>Copy role</Text>
         <Text size="sm" c="dimmed">
           Makes a new role with the same permissions and field access.
         </Text>
@@ -58,7 +58,7 @@ export function ArchiveRoleForm({
   return (
     <form action={dispatch}>
       <Stack gap="xs">
-        <Title order={4}>{archived ? 'Restore role' : 'Archive role'}</Title>
+        <Text fw={600}>{archived ? 'Restore role' : 'Archive role'}</Text>
         <Text size="sm" c="dimmed">
           {archived
             ? 'Restoring makes the role available to assign again.'

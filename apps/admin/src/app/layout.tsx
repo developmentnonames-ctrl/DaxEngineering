@@ -1,7 +1,9 @@
 import '@mantine/core/styles.css';
+import '@dax/web-shell/styles.css';
 import './global.css';
 import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import { DaxProvider } from '@dax/web-shell';
+import { fontVariables } from '@dax/web-shell/fonts';
 import { PRODUCT } from '../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -18,9 +20,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" {...mantineHtmlProps}>
+    <html lang="en" className={fontVariables} {...mantineHtmlProps}>
       <head>
-        <ColorSchemeScript defaultColorScheme="light" />
+        <ColorSchemeScript defaultColorScheme="auto" />
       </head>
       <body>
         <DaxProvider>{children}</DaxProvider>

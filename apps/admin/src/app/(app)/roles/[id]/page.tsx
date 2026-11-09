@@ -1,19 +1,9 @@
-import {
-  Alert,
-  Anchor,
-  Badge,
-  Divider,
-  Group,
-  Paper,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
+import { Alert, Divider, Stack } from '@mantine/core';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
 import { RoleDetail } from '@dax/platform-contract';
 import { ApiError } from '@dax/web-data-access/server';
-import { canDo } from '@dax/web-shell';
+import { canDo, PageHead, Pill, SectionCard } from '@dax/web-shell';
 import { getCatalog } from '../../../../lib/data';
 import { api, requirePermission } from '../../../../lib/server';
 import { copyRole, saveGrants, setRoleArchived, updateRole } from '../actions';
@@ -43,29 +33,24 @@ export default async function RolePage({
   const readOnly = !canManage || role.archived;
 
   return (
-    <Stack gap="lg">
-      <Anchor href="/roles" size="sm">
-        Back to roles
-      </Anchor>
-      <Group gap="xs">
-        <Title order={2}>{role.name}</Title>
-        {role.isSuperAdmin ? (
-          <Badge color="red" variant="light">
-            Super admin
-          </Badge>
-        ) : null}
-        {role.isSystem ? (
-          <Badge color="gray" variant="light">
-            System
-          </Badge>
-        ) : null}
-        {role.archived ? <Badge color="gray">Archived</Badge> : null}
-      </Group>
-      <Text size="sm" c="dimmed">
-        {role.userCount === 1
-          ? '1 user has this role.'
-          : `${role.userCount} users have this role.`}
-      </Text>
+    <>
+      <PageHead
+        eyebrow="Admin · Access"
+        back={{ href: '/roles', label: 'Roles' }}
+        title={role.name}
+        lede={
+          <span className="dax-chips" style={{ alignItems: 'center' }}>
+            {role.isSuperAdmin ? <Pill tone="bad">Super admin</Pill> : null}
+            {role.isSystem ? <Pill>System</Pill> : null}
+            {role.archived ? <Pill>Archived</Pill> : null}
+            <span>
+              {role.userCount === 1
+                ? '1 user has this role.'
+                : `${role.userCount} users have this role.`}
+            </span>
+          </span>
+        }
+      />
       {!canManage ? (
         <Alert color="gray">You can view this role but not change it.</Alert>
       ) : role.archived ? (
@@ -74,9 +59,8 @@ export default async function RolePage({
         </Alert>
       ) : null}
 
-      <Paper withBorder p="lg" maw={640}>
-        <Stack>
-          <Title order={3}>Settings</Title>
+      <div style={{ maxWidth: 680 }}>
+        <SectionCard title="Settings">
           <RoleForm
             action={updateRole.bind(null, role.id)}
             defaults={{
@@ -87,8 +71,8 @@ export default async function RolePage({
             submitLabel="Save settings"
             readOnly={readOnly}
           />
-        </Stack>
-      </Paper>
+        </SectionCard>
+      </div>
 
       {role.isSuperAdmin ? (
         <Alert color="blue" title="Super admins have every permission">
@@ -106,26 +90,28 @@ export default async function RolePage({
       )}
 
       {canManage && !role.isSuperAdmin ? (
-        <Paper withBorder p="lg" maw={640}>
-          <Stack gap="lg">
-            {role.archived ? null : (
-              <CopyRoleForm
-                roleName={role.name}
-                action={copyRole.bind(null, role.id)}
-              />
-            )}
-            {role.isSystem ? null : (
-              <>
-                {role.archived ? null : <Divider />}
-                <ArchiveRoleForm
-                  archived={role.archived}
-                  action={setRoleArchived.bind(null, role.id, !role.archived)}
+        <div style={{ maxWidth: 680 }}>
+          <SectionCard title="Copy or archive">
+            <Stack gap="lg">
+              {role.archived ? null : (
+                <CopyRoleForm
+                  roleName={role.name}
+                  action={copyRole.bind(null, role.id)}
                 />
-              </>
-            )}
-          </Stack>
-        </Paper>
+              )}
+              {role.isSystem ? null : (
+                <>
+                  {role.archived ? null : <Divider />}
+                  <ArchiveRoleForm
+                    archived={role.archived}
+                    action={setRoleArchived.bind(null, role.id, !role.archived)}
+                  />
+                </>
+              )}
+            </Stack>
+          </SectionCard>
+        </div>
       ) : null}
-    </Stack>
+    </>
   );
 }

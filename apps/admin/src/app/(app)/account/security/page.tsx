@@ -1,32 +1,40 @@
-import { Badge, Group, Paper, Stack, Text, Title } from '@mantine/core';
-import { ChangePasswordForm } from '@dax/web-shell';
+import { Text } from '@mantine/core';
+import {
+  ChangePasswordForm,
+  PageHead,
+  Pill,
+  SectionCard,
+} from '@dax/web-shell';
 import { requireReadyUser } from '../../../../lib/server';
 
 export default async function SecurityPage() {
   const me = await requireReadyUser();
   const on = me.user.twoFactorEnabled;
   return (
-    <Stack maw={480}>
-      <Title order={2}>My security</Title>
-      <Paper withBorder p="lg">
-        <Stack>
-          <Title order={4}>Change password</Title>
+    <>
+      <PageHead
+        eyebrow="Account"
+        title="My security"
+        lede="Your password and two-step sign-in."
+        back={{ href: '/', label: 'Home' }}
+      />
+      <div className="dax-stack" style={{ maxWidth: 560 }}>
+        <SectionCard title="Change password">
           <ChangePasswordForm afterPath="/account/security" />
-        </Stack>
-      </Paper>
-      <Paper withBorder p="lg">
-        <Stack>
-          <Group justify="space-between">
-            <Title order={4}>Two-step sign-in</Title>
-            <Badge color={on ? 'green' : 'gray'}>{on ? 'On' : 'Off'}</Badge>
-          </Group>
+        </SectionCard>
+        <SectionCard
+          title="Two-step sign-in"
+          actions={
+            <Pill tone={on ? 'ok' : undefined}>{on ? 'On' : 'Off'}</Pill>
+          }
+        >
           <Text size="sm">
             {on
               ? 'You enter a code from your authenticator app each time you sign in.'
               : 'Your roles do not require a code from an authenticator app.'}
           </Text>
-        </Stack>
-      </Paper>
-    </Stack>
+        </SectionCard>
+      </div>
+    </>
   );
 }

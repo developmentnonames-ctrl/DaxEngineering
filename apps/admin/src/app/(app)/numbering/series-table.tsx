@@ -1,9 +1,7 @@
 'use client';
 
 import {
-  Badge,
   Button,
-  Code,
   NumberInput,
   Stack,
   Switch,
@@ -13,6 +11,7 @@ import {
 } from '@mantine/core';
 import { startTransition, useActionState, useState } from 'react';
 import type { NumberSeriesDto } from '@dax/platform-contract';
+import { Empty, Mono, Pill, SectionCard } from '@dax/web-shell';
 import { fieldError, IDLE } from '../../../lib/action-state';
 import { saveSeries } from './actions';
 
@@ -39,8 +38,10 @@ function SeriesRow({
           {series.name}
         </Text>
         <Text size="xs" c="dimmed">
-          {series.docType}
-          {series.subtype ? ` · ${series.subtype}` : ''}
+          <Mono>
+            {series.docType}
+            {series.subtype ? ` · ${series.subtype}` : ''}
+          </Mono>
         </Text>
       </Table.Td>
       <Table.Td>
@@ -52,10 +53,10 @@ function SeriesRow({
             maxLength={60}
             disabled={pending}
             error={fieldError(state, 'input.pattern')}
-            styles={{ input: { fontFamily: 'monospace' } }}
+            styles={{ input: { fontFamily: 'var(--dax-f-mono)' } }}
           />
         ) : (
-          <Code>{series.pattern}</Code>
+          <Mono>{series.pattern}</Mono>
         )}
       </Table.Td>
       <Table.Td w={110}>
@@ -86,14 +87,14 @@ function SeriesRow({
             onChange={(e) => setActive(e.currentTarget.checked)}
           />
         ) : (
-          <Badge color={series.active ? 'green' : 'gray'}>
+          <Pill tone={series.active ? 'ok' : undefined}>
             {series.active ? 'Active' : 'Off'}
-          </Badge>
+          </Pill>
         )}
       </Table.Td>
       <Table.Td>
         <Stack gap={2}>
-          <Code>{series.preview}</Code>
+          <Mono>{series.preview}</Mono>
           {dirty ? (
             <Text size="xs" c="dimmed">
               Save to update the preview
@@ -139,30 +140,40 @@ export function SeriesTable({
   canManage: boolean;
 }) {
   if (!series.length)
-    return <Text c="dimmed">No document types use numbering yet.</Text>;
+    return (
+      <SectionCard title="Number series">
+        <Empty title="No document types use numbering yet" />
+      </SectionCard>
+    );
   return (
-    <Table.ScrollContainer minWidth={760}>
-      <Table striped withTableBorder verticalSpacing="sm">
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Document</Table.Th>
-            <Table.Th>Pattern</Table.Th>
-            <Table.Th>Digits</Table.Th>
-            <Table.Th>Active</Table.Th>
-            <Table.Th>Next number looks like</Table.Th>
-            {canManage ? <Table.Th /> : null}
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {series.map((s) => (
-            <SeriesRow
-              key={`${s.id}:${s.pattern}:${String(s.padding)}:${String(s.active)}`}
-              series={s}
-              canManage={canManage}
-            />
-          ))}
-        </Table.Tbody>
-      </Table>
-    </Table.ScrollContainer>
+    <SectionCard
+      flush
+      title="Number series"
+      note={`${series.length} document ${series.length === 1 ? 'type' : 'types'}`}
+    >
+      <Table.ScrollContainer minWidth={760}>
+        <Table verticalSpacing="sm">
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Document</Table.Th>
+              <Table.Th>Pattern</Table.Th>
+              <Table.Th>Digits</Table.Th>
+              <Table.Th>Active</Table.Th>
+              <Table.Th>Next number looks like</Table.Th>
+              {canManage ? <Table.Th /> : null}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {series.map((s) => (
+              <SeriesRow
+                key={`${s.id}:${s.pattern}:${String(s.padding)}:${String(s.active)}`}
+                series={s}
+                canManage={canManage}
+              />
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
+    </SectionCard>
   );
 }

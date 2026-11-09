@@ -1,9 +1,12 @@
 import type { Type } from '@nestjs/common';
 import { assertCatalog, type ModuleManifest } from '@dax/contracts';
 import { inventoryManifest } from '@dax/inventory-contract';
-import { InventoryServerModule } from '@dax/inventory-server';
+import {
+  INVENTORY_ENTITIES,
+  InventoryServerModule,
+} from '@dax/inventory-server';
 import { partiesManifest } from '@dax/parties-contract';
-import { PartiesServerModule } from '@dax/parties-server';
+import { PARTIES_ENTITIES, PartiesServerModule } from '@dax/parties-server';
 import { coreManifest } from '@dax/platform-contract';
 import type { EntityDef } from '@dax/platform-core';
 import { Client } from 'pg';
@@ -14,7 +17,10 @@ export const INSTALLED_MODULES: readonly ModuleManifest[] = assertCatalog([
   inventoryManifest,
 ]);
 
-export const MODULE_ENTITIES: readonly EntityDef[] = [];
+export const MODULE_ENTITIES: readonly EntityDef[] = [
+  ...PARTIES_ENTITIES,
+  ...INVENTORY_ENTITIES,
+];
 
 export const MODULE_SERVERS: Readonly<Record<string, Type<unknown>>> = {
   parties: PartiesServerModule,
@@ -28,7 +34,14 @@ export async function loadEnabledModules(
     connectionString: databaseUrl,
     application_name: 'dax-api-boot',
   });
-  await client.connect();
+  try {
+    await client.connect();
+  } catch {
+    const { hostname, port } = new URL(databaseUrl);
+    throw new Error(
+      `Cannot reach the database at ${hostname}:${port || 5432}. Is Postgres running? (locally: pnpm db:up)`,
+    );
+  }
   try {
     const exists = await client.query<{ ok: boolean }>(
       "SELECT to_regclass('core.module') IS NOT NULL AS ok",

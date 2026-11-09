@@ -2,23 +2,21 @@
 
 import {
   Accordion,
-  Alert,
-  Badge,
   Button,
   Checkbox,
   Group,
   Stack,
   Table,
   Text,
-  Title,
 } from '@mantine/core';
+import { Empty, Pill, SectionCard } from '@dax/web-shell';
 import type { Dispatch, SetStateAction } from 'react';
 import {
   type CatalogEntity,
   type CatalogField,
   tierDefault,
 } from '../../../../lib/catalog';
-import { TIER_COLORS, TIER_LABELS } from '../../../../lib/format';
+import { TIER_LABELS, TIER_TONES } from '../../../../lib/format';
 import {
   type FieldAccess,
   type FieldState,
@@ -66,9 +64,7 @@ function FieldRow({
         </Text>
       </Table.Td>
       <Table.Td>
-        <Badge color={TIER_COLORS[field.tier]} variant="light">
-          {TIER_LABELS[field.tier]}
-        </Badge>
+        <Pill tone={TIER_TONES[field.tier]}>{TIER_LABELS[field.tier]}</Pill>
       </Table.Td>
       <Table.Td>
         <Checkbox
@@ -95,9 +91,7 @@ function FieldRow({
       <Table.Td>
         {changed ? (
           <Group gap={4} wrap="nowrap">
-            <Badge color="blue" variant="light">
-              Changed
-            </Badge>
+            <Pill tone="int">Changed</Pill>
             {readOnly ? null : (
               <Button
                 size="compact-xs"
@@ -150,22 +144,18 @@ export function FieldGrid({
     );
 
   return (
-    <Stack>
-      <Title order={3}>Field access</Title>
-      <Alert color="blue" variant="light">
-        <Text size="sm">
-          Default: Internal fields are visible, Confidential and Restricted
-          fields are hidden. Only changes from the default are saved.
-        </Text>
-        <Text size="sm" mt={4}>
-          A user with several roles sees a field if any of their roles can see
-          it. Write access always includes read access.
-        </Text>
-      </Alert>
+    <SectionCard
+      title="Field access"
+      note="Default: Internal fields are visible, Confidential and Restricted fields are hidden. Only changes from the default are saved."
+    >
+      <p className="dax-sub" style={{ margin: '0 0 14px' }}>
+        A user with several roles sees a field if any of their roles can see it.
+        Write access always includes read access.
+      </p>
       {entities.length === 0 ? (
-        <Text c="dimmed">No fields to manage yet.</Text>
+        <Empty title="No fields to manage yet" />
       ) : (
-        <Accordion multiple variant="separated">
+        <Accordion multiple variant="separated" radius="lg">
           {entities.map((entity) => {
             const changedCount = entity.fields.filter((f) =>
               isChanged(f, fields[f.id] ?? tierDefault(f)),
@@ -176,9 +166,7 @@ export function FieldGrid({
                   <Group gap="xs">
                     <Text fw={500}>{entity.label}</Text>
                     {changedCount ? (
-                      <Badge color="blue" variant="light">
-                        {changedCount} changed
-                      </Badge>
+                      <Pill tone="int">{changedCount} changed</Pill>
                     ) : null}
                   </Group>
                 </Accordion.Control>
@@ -243,6 +231,6 @@ export function FieldGrid({
           })}
         </Accordion>
       )}
-    </Stack>
+    </SectionCard>
   );
 }

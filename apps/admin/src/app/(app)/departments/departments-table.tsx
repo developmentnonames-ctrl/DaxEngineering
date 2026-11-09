@@ -1,10 +1,8 @@
 'use client';
 
 import {
-  Badge,
   Button,
   Group,
-  Paper,
   Stack,
   Switch,
   Table,
@@ -13,6 +11,7 @@ import {
 } from '@mantine/core';
 import { startTransition, useActionState, useState } from 'react';
 import type { DepartmentDto } from '@dax/platform-contract';
+import { Empty, Pill, SectionCard } from '@dax/web-shell';
 import { StateAlert } from '../../../components/state-alert';
 import { fieldError, IDLE } from '../../../lib/action-state';
 import { createDepartment, updateDepartment } from './actions';
@@ -20,7 +19,7 @@ import { createDepartment, updateDepartment } from './actions';
 export function AddDepartmentForm() {
   const [state, action, pending] = useActionState(createDepartment, IDLE);
   return (
-    <Paper withBorder p="md">
+    <SectionCard title="Add a department">
       <form action={action}>
         <Stack gap="sm">
           <StateAlert state={state} />
@@ -40,7 +39,7 @@ export function AddDepartmentForm() {
           </Group>
         </Stack>
       </form>
-    </Paper>
+    </SectionCard>
   );
 }
 
@@ -95,7 +94,7 @@ function DepartmentRow({
           department.name
         )}
       </Table.Td>
-      <Table.Td>{department.memberCount}</Table.Td>
+      <Table.Td className="dax-num">{department.memberCount}</Table.Td>
       <Table.Td>
         {canManage ? (
           <Switch
@@ -108,9 +107,9 @@ function DepartmentRow({
             }
           />
         ) : (
-          <Badge color={department.active ? 'green' : 'gray'}>
+          <Pill tone={department.active ? 'ok' : undefined}>
             {department.active ? 'Active' : 'Off'}
-          </Badge>
+          </Pill>
         )}
       </Table.Td>
     </Table.Tr>
@@ -125,25 +124,37 @@ export function DepartmentsTable({
   canManage: boolean;
 }) {
   return (
-    <Table.ScrollContainer minWidth={420}>
-      <Table striped withTableBorder verticalSpacing="sm">
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Members</Table.Th>
-            <Table.Th>Status</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {departments.map((d) => (
-            <DepartmentRow
-              key={`${d.id}:${d.name}`}
-              department={d}
-              canManage={canManage}
-            />
-          ))}
-        </Table.Tbody>
-      </Table>
-    </Table.ScrollContainer>
+    <SectionCard
+      flush
+      title="All departments"
+      note={`${departments.length} ${departments.length === 1 ? 'department' : 'departments'}`}
+    >
+      {departments.length === 0 ? (
+        <div className="dax-card-body">
+          <Empty title="No departments yet" />
+        </div>
+      ) : (
+        <Table.ScrollContainer minWidth={420}>
+          <Table verticalSpacing="sm">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Name</Table.Th>
+                <Table.Th ta="right">Members</Table.Th>
+                <Table.Th>Status</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {departments.map((d) => (
+                <DepartmentRow
+                  key={`${d.id}:${d.name}`}
+                  department={d}
+                  canManage={canManage}
+                />
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      )}
+    </SectionCard>
   );
 }

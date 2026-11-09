@@ -48,14 +48,15 @@ export function LoginForm({ next }: { next?: string }) {
     finish();
   }
 
-  async function verify(event?: FormEvent) {
+  async function verify(event?: FormEvent, typed?: string) {
+    const value = typed ?? code;
     event?.preventDefault();
     setBusy(true);
     setError(null);
     const result =
       step === 'totp'
-        ? await authClient.twoFactor.verifyTotp({ code })
-        : await authClient.twoFactor.verifyBackupCode({ code: code.trim() });
+        ? await authClient.twoFactor.verifyTotp({ code: value })
+        : await authClient.twoFactor.verifyBackupCode({ code: value.trim() });
     setBusy(false);
     if (result.error) {
       setError(authErrorMessage(result.error));
@@ -83,7 +84,7 @@ export function LoginForm({ next }: { next?: string }) {
               autoFocus
               value={code}
               onChange={setCode}
-              onComplete={() => void verify()}
+              onComplete={(value) => void verify(undefined, value)}
               aria-label="Authenticator code"
             />
           ) : (

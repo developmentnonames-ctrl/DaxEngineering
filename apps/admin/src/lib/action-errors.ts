@@ -42,7 +42,8 @@ export function failure(
 ): ActionState {
   if (!(error instanceof ApiError)) throw error;
   if (error.status === 401) redirect('/login');
-  if (error.status >= 500) return { ok: false, error: fallback };
+  if (error.status >= 500 && error.body.code !== 'EMAIL_FAILED')
+    return { ok: false, error: fallback };
   const { code, message, fields } = error.body;
   const known = code ? (codeMessages[code] ?? CODE_MESSAGES[code]) : undefined;
   return {

@@ -251,9 +251,20 @@ export async function syncRegistry(
             docType: s.docType,
             subtype: r.subtype,
             name: r.name,
-            pattern: r.subtype ? '{DOC}/{SUB}/{FY}/{SEQ}' : '{DOC}/{FY}/{SEQ}',
+            yearly: s.yearly !== false,
+            pattern:
+              s.yearly === false
+                ? '{DOC}-{SEQ}'
+                : r.subtype
+                  ? '{DOC}/{SUB}/{FY}/{SEQ}'
+                  : '{DOC}/{FY}/{SEQ}',
           },
-          update: { moduleKey: m.key, name: r.name, removedAt: null },
+          update: {
+            moduleKey: m.key,
+            name: r.name,
+            yearly: s.yearly !== false,
+            removedAt: null,
+          },
         });
       }
     }

@@ -8,13 +8,29 @@ export const partiesManifest = defineModule({
   features: {
     customer: {
       name: 'Customers',
-      actions: { view: {}, create: {}, edit: {}, archive: {} },
+      actions: {
+        view: {},
+        create: {},
+        edit: {},
+        archive: {},
+        import: { label: 'Import from CSV' },
+      },
     },
     supplier: {
       name: 'Suppliers',
-      actions: { view: {}, create: {}, edit: {}, archive: {} },
+      actions: {
+        view: {},
+        create: {},
+        edit: {},
+        archive: {},
+        import: { label: 'Import from CSV' },
+      },
     },
   },
+  numberSeries: [
+    { docType: 'CUS', name: 'Customer code', yearly: false },
+    { docType: 'SUP', name: 'Supplier code', yearly: false },
+  ],
   menu: [
     {
       key: 'parties.customers',

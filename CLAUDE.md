@@ -7,7 +7,7 @@ Phase 1 is Stores / Inventory only; other modules plug in later. Read `docs/arch
 
 - Always run tasks through Nx: `pnpm nx <target> <project>`, `pnpm nx run-many -t lint typecheck test build`.
 - Run `pnpm nx sync` after adding a workspace dependency (non-interactive shells don't auto-sync).
-- `pnpm check` runs everything CI runs, except format.
+- `pnpm check` runs everything CI runs, including the format check. Fix formatting with `pnpm nx format:write`.
 - Local DB: `pnpm db:up` (Postgres on 127.0.0.1:55432), then `pnpm db:migrate`.
 - Never guess Nx generator flags; check `--help` first.
 

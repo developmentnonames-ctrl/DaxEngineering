@@ -15,6 +15,7 @@ import {
 import { type FormEvent, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { authClient, authErrorMessage } from './auth-client';
+import { clearOfflineData } from './pwa';
 
 type Step =
   | { name: 'password' }
@@ -53,11 +54,13 @@ export function TwoFactorSetup({ afterPath = '/' }: { afterPath?: string }) {
     });
   }
 
-  async function confirm(event?: FormEvent) {
+  async function confirm(event?: FormEvent, typed?: string) {
     event?.preventDefault();
     setBusy(true);
     setError(null);
-    const result = await authClient.twoFactor.verifyTotp({ code });
+    const result = await authClient.twoFactor.verifyTotp({
+      code: typed ?? code,
+    });
     setBusy(false);
     if (result.error) {
       setCode('');
@@ -125,7 +128,7 @@ export function TwoFactorSetup({ afterPath = '/' }: { afterPath?: string }) {
           oneTimeCode
           value={code}
           onChange={setCode}
-          onComplete={() => void confirm()}
+          onComplete={(value) => void confirm(undefined, value)}
           aria-label="Authenticator code"
         />
         <Button type="submit" loading={busy} disabled={code.length !== 6}>
@@ -136,15 +139,17 @@ export function TwoFactorSetup({ afterPath = '/' }: { afterPath?: string }) {
   );
 }
 
-export function SignOutButton() {
+export function SignOutButton({ fullWidth = false }: { fullWidth?: boolean }) {
   const [busy, setBusy] = useState(false);
   return (
     <Button
       variant="default"
+      fullWidth={fullWidth}
       loading={busy}
       onClick={async () => {
         setBusy(true);
         await authClient.signOut();
+        await clearOfflineData();
         window.location.assign('/login');
       }}
     >

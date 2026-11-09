@@ -1,0 +1,196 @@
+enum ItemStatus {
+  ACTIVE
+  ARCHIVED
+
+  @@schema("inventory")
+}
+
+enum BinKind {
+  STORAGE
+  RECEIVING
+  QUARANTINE
+  WARRANTY
+
+  @@schema("inventory")
+}
+
+enum BarcodeKind {
+  MANUFACTURER
+  SUPPLIER
+  ALTERNATE
+
+  @@schema("inventory")
+}
+
+model Brand {
+  id            String         @id @default(uuid(7)) @db.Uuid
+  name          String         @unique
+  active        Boolean        @default(true)
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  items         Item[]
+  machineModels MachineModel[]
+
+  @@map("brand")
+  @@schema("inventory")
+}
+
+model MachineModel {
+  id        String             @id @default(uuid(7)) @db.Uuid
+  name      String             @unique
+  brandId   String?            @map("brand_id") @db.Uuid
+  brand     Brand?             @relation(fields: [brandId], references: [id])
+  active    Boolean            @default(true)
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  items     ItemMachineModel[]
+
+  @@map("machine_model")
+  @@schema("inventory")
+}
+
+model Item {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  partNo         String             @map("part_no")
+  partNoNorm     String             @map("part_no_norm")
+  brandId        String             @map("brand_id") @db.Uuid
+  brand          Brand              @relation(fields: [brandId], references: [id])
+  description    String
+  uom            String
+  allowFraction  Boolean            @default(false) @map("allow_fraction")
+  minQty         Decimal            @default(0) @map("min_qty") @db.Decimal(14, 3)
+  defaultBinId   String?            @map("default_bin_id") @db.Uuid
+  defaultBin     Bin?               @relation(fields: [defaultBinId], references: [id])
+  supersededById String?            @map("superseded_by_id") @db.Uuid
+  supersededBy   Item?              @relation("Supersession", fields: [supersededById], references: [id])
+  supersedes     Item[]             @relation("Supersession")
+  status         ItemStatus         @default(ACTIVE)
+  qrToken        String             @unique @map("qr_token")
+  notes          String?
+  version        Int                @default(1)
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy      String             @map("created_by") @db.Uuid
+  updatedAt      DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy      String             @map("updated_by") @db.Uuid
+  machineModels  ItemMachineModel[]
+  barcodes       ItemBarcode[]
+  binStock       BinStock[]
+  balances       StockBalance[]
+
+  @@unique([brandId, partNoNorm])
+  @@index([partNoNorm])
+  @@index([status])
+  @@map("item")
+  @@schema("inventory")
+}
+
+model ItemMachineModel {
+  itemId         String       @map("item_id") @db.Uuid
+  item           Item         @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  machineModelId String       @map("machine_model_id") @db.Uuid
+  machineModel   MachineModel @relation(fields: [machineModelId], references: [id])
+
+  @@id([itemId, machineModelId])
+  @@index([machineModelId])
+  @@map("item_machine_model")
+  @@schema("inventory")
+}
+
+model ItemBarcode {
+  id        String      @id @default(uuid(7)) @db.Uuid
+  itemId    String      @map("item_id") @db.Uuid
+  item      Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  code      String      @unique
+  kind      BarcodeKind
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([itemId])
+  @@map("item_barcode")
+  @@schema("inventory")
+}
+
+model Store {
+  id       String         @id @default(uuid(7)) @db.Uuid
+  code     String         @unique
+  name     String
+  active   Boolean        @default(true)
+  zones    Zone[]
+  bins     Bin[]
+  balances StockBalance[]
+
+  @@map("store")
+  @@schema("inventory")
+}
+
+model Zone {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  storeId   String   @map("store_id") @db.Uuid
+  store     Store    @relation(fields: [storeId], references: [id])
+  code      String
+  name      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  bins      Bin[]
+
+  @@unique([storeId, code])
+  @@map("zone")
+  @@schema("inventory")
+}
+
+model Bin {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  storeId      String     @map("store_id") @db.Uuid
+  store        Store      @relation(fields: [storeId], references: [id])
+  zoneId       String     @map("zone_id") @db.Uuid
+  zone         Zone       @relation(fields: [zoneId], references: [id])
+  code         String
+  rack         String
+  shelf        String
+  position     String
+  kind         BinKind    @default(STORAGE)
+  qrToken      String     @unique @map("qr_token")
+  active       Boolean    @default(true)
+  notes        String?
+  version      Int        @default(1)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy    String     @map("created_by") @db.Uuid
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy    String     @map("updated_by") @db.Uuid
+  stock        BinStock[]
+  defaultItems Item[]
+
+  @@unique([storeId, code])
+  @@index([zoneId])
+  @@map("bin")
+  @@schema("inventory")
+}
+
+model BinStock {
+  binId     String   @map("bin_id") @db.Uuid
+  bin       Bin      @relation(fields: [binId], references: [id])
+  itemId    String   @map("item_id") @db.Uuid
+  item      Item     @relation(fields: [itemId], references: [id])
+  qty       Decimal  @default(0) @db.Decimal(14, 3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@id([binId, itemId])
+  @@index([itemId])
+  @@map("bin_stock")
+  @@schema("inventory")
+}
+
+model StockBalance {
+  storeId    String   @map("store_id") @db.Uuid
+  store      Store    @relation(fields: [storeId], references: [id])
+  itemId     String   @map("item_id") @db.Uuid
+  item       Item     @relation(fields: [itemId], references: [id])
+  onHand     Decimal  @default(0) @map("on_hand") @db.Decimal(14, 3)
+  held       Decimal  @default(0) @db.Decimal(14, 3)
+  quarantine Decimal  @default(0) @db.Decimal(14, 3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@id([storeId, itemId])
+  @@index([itemId])
+  @@map("stock_balance")
+  @@schema("inventory")
+}

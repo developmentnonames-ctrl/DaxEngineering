@@ -5,6 +5,15 @@ export interface MailMessage {
   html: string;
 }
 
+export class MailError extends Error {
+  constructor(
+    readonly status: number,
+    readonly reason: string,
+  ) {
+    super(`Resend responded ${status}: ${reason}`);
+  }
+}
+
 export interface Mailer {
   send(message: MailMessage): Promise<void>;
 }
@@ -34,7 +43,16 @@ export class ResendMailer implements Mailer {
       }),
       signal: AbortSignal.timeout(10_000),
     });
-    if (!res.ok) throw new Error(`Resend responded ${res.status}`);
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as {
+        message?: unknown;
+      } | null;
+      const reason =
+        typeof body?.message === 'string'
+          ? body.message.slice(0, 300)
+          : 'unknown error';
+      throw new MailError(res.status, reason);
+    }
   }
 }
 

@@ -19,6 +19,7 @@ export interface SeriesFormat {
   subtype: string;
   pattern: string;
   padding: number;
+  yearly?: boolean;
 }
 
 export function formatSeriesNumber(
@@ -39,7 +40,7 @@ export function formatSeriesNumber(
       series.padding,
     ),
     seq,
-    periodKey: fy.periodKey,
+    periodKey: series.yearly === false ? 'ALL' : fy.periodKey,
   };
 }
 
@@ -60,7 +61,8 @@ export class NumberingService {
         message: `There is no active number series for ${name}.`,
       });
     }
-    const { periodKey } = fiscalYearOf(input.date);
+    const periodKey =
+      series.yearly === false ? 'ALL' : fiscalYearOf(input.date).periodKey;
     // The upsert's row lock serializes concurrent posts; a rollback hands the number back.
     const [counter] = await tx.$queryRaw<{ last_value: number }[]>`
       INSERT INTO core.number_counter (series_id, period_key, last_value)
