@@ -19,6 +19,7 @@ import {
 import { formatQty } from '../../lib/format';
 import { requireCapabilities } from '../../lib/server';
 import { getInventorySummary, listStock } from './inventory/_lib/data';
+import { getReceivingSummary } from './inventory/receiving/_lib/data';
 import { getPartiesSummary } from './parties/_party/data';
 
 const count = new Intl.NumberFormat('en-LK');
@@ -30,10 +31,12 @@ export default async function HomePage() {
   const canSeeStock = can('inventory.stock.view');
   const canScan = canSeeItems || can('inventory.location.view');
 
-  const [inventory, parties, low] = await Promise.all([
+  const canPutAway = can('inventory.grn.putaway');
+  const [inventory, parties, low, receiving] = await Promise.all([
     canSeeItems ? getInventorySummary() : null,
     getPartiesSummary(),
     canSeeStock ? listStock({ belowMin: 'true', limit: '5' }) : null,
+    canPutAway ? getReceivingSummary() : null,
   ]);
   const firstName = caps.user.name.trim().split(/\s+/)[0] ?? caps.user.name;
 
@@ -96,6 +99,24 @@ export default async function HomePage() {
       sub: 'Point the camera at a bin or item label.',
       icon: 'scan',
       tint: 'orange',
+    });
+  if (canPutAway)
+    tiles.push({
+      href: '/inventory/receiving/putaway',
+      title: 'Waiting for put-away',
+      sub: receiving
+        ? `${count.format(receiving.awaitingPutaway)} waiting in the receiving bin.`
+        : 'Move received stock to its shelf.',
+      icon: 'box',
+      tint: receiving?.awaitingPutaway ? 'orange' : 'gray',
+    });
+  if (can('inventory.grn.check'))
+    tiles.push({
+      href: '/inventory/receiving/grns/new',
+      title: 'Receive a delivery',
+      sub: 'Count a delivery at the dock.',
+      icon: 'truck',
+      tint: 'gray',
     });
   if (canSeeItems)
     tiles.push({

@@ -88,6 +88,7 @@ export const StockFigures = z.object({
   onHand: z.string(),
   held: z.string(),
   quarantine: z.string(),
+  receiving: z.string(),
   free: z.string(),
 });
 export type StockFigures = z.infer<typeof StockFigures>;

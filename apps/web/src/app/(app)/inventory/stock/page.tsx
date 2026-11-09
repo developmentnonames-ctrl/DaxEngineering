@@ -66,7 +66,7 @@ export default async function StockPage({
       <PageHead
         eyebrow="Inventory"
         title="Stock"
-        lede="Free is on hand minus held. Figures change only through receiving, issuing and counts."
+        lede="Free is what can be issued now. Stock in the receiving bin becomes free after put-away; quarantine never does."
       />
       <SectionCard
         flush
@@ -112,6 +112,7 @@ export default async function StockPage({
                     <TableTh ta="right">On hand</TableTh>
                     <TableTh ta="right">Held</TableTh>
                     <TableTh ta="right">Free</TableTh>
+                    <TableTh ta="right">In receiving</TableTh>
                     <TableTh ta="right">Minimum</TableTh>
                     <TableTh>Bins</TableTh>
                   </TableTr>
@@ -131,6 +132,9 @@ export default async function StockPage({
                       <TableTd className="dax-num">
                         <b>{formatQty(row.stock.free)}</b>{' '}
                         <span className="dax-muted">{row.item.uom}</span>
+                      </TableTd>
+                      <TableTd className="dax-num">
+                        {formatQty(row.stock.receiving)}
                       </TableTd>
                       <TableTd className="dax-num">
                         <div

@@ -75,6 +75,9 @@ model Item {
   machineModels  ItemMachineModel[]
   barcodes       ItemBarcode[]
   binStock       BinStock[]
+  ledger         StockLedger[]
+  grnLines       GrnLine[]
+  discrepancies  Discrepancy[]
   balances       StockBalance[]
 
   @@unique([brandId, partNoNorm])
@@ -157,6 +160,7 @@ model Bin {
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   updatedBy    String     @map("updated_by") @db.Uuid
   stock        BinStock[]
+  ledger       StockLedger[]
   defaultItems Item[]
 
   @@unique([storeId, code])
@@ -187,6 +191,7 @@ model StockBalance {
   onHand     Decimal  @default(0) @map("on_hand") @db.Decimal(14, 3)
   held       Decimal  @default(0) @db.Decimal(14, 3)
   quarantine Decimal  @default(0) @db.Decimal(14, 3)
+  receiving  Decimal  @default(0) @db.Decimal(14, 3)
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@id([storeId, itemId])

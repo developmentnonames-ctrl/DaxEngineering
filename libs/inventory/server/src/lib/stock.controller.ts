@@ -51,7 +51,12 @@ export class StockController {
         brand: { select: { name: true } },
         balances: {
           where: { storeId },
-          select: { onHand: true, held: true, quarantine: true },
+          select: {
+            onHand: true,
+            held: true,
+            quarantine: true,
+            receiving: true,
+          },
         },
         binStock: {
           where: binFilter,

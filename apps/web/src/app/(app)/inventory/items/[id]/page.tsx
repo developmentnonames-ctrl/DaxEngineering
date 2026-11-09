@@ -22,12 +22,14 @@ import { PrintLabelsButton } from '../../../../../components/labels';
 import { AppLink } from '../../../../../components/links';
 import { BelowMinBadge, StockPanel } from '../../../../../components/stock';
 import { formatDateTime, formatQty, uomLabel } from '../../../../../lib/format';
-import { uuidParam } from '../../../../../lib/load';
+import { optional, uuidParam } from '../../../../../lib/load';
 import { requirePermission } from '../../../../../lib/server';
 import { getCatalog, getItem } from '../../_lib/data';
+import { listMovements } from '../../receiving/_lib/data';
 import { setItemStatus } from '../_item/actions';
 import { Barcodes } from '../_item/barcodes';
 import { ItemForm } from '../_item/item-form';
+import { Movements } from '../_item/movements';
 import { Replacement } from '../_item/replacement';
 
 export default async function ItemPage({
@@ -37,7 +39,10 @@ export default async function ItemPage({
 }) {
   const caps = await requirePermission('inventory.item.view');
   const id = await uuidParam(params);
-  const item = await getItem(id);
+  const [item, movements] = await Promise.all([
+    getItem(id),
+    canDo(caps, 'inventory.ledger.view') ? optional(listMovements(id)) : null,
+  ]);
   const active = item.status === 'ACTIVE';
   const canEdit = canDo(caps, 'inventory.item.edit') && active;
   const canArchive = canDo(caps, 'inventory.item.archive');
@@ -143,6 +148,16 @@ export default async function ItemPage({
           )}
         </div>
       </SectionCard>
+
+      {movements ? (
+        <SectionCard
+          flush
+          title="Movements"
+          note="Every change to this part's stock, newest first"
+        >
+          <Movements itemId={item.id} uom={item.uom} initial={movements} />
+        </SectionCard>
+      ) : null}
 
       <SectionCard title="Details">
         {canEdit && catalog ? (

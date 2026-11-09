@@ -119,6 +119,14 @@ const PATHS: Record<string, ReactNode> = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  minus: <path d="M5 12h14" />,
+  close: <path d="M6 6l12 12M18 6L6 18" />,
+  camera: (
+    <>
+      <path d="M4 8.5a2 2 0 0 1 2-2h2l1.5-2h5L16 6.5h2a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </>
+  ),
   arrow: <path d="M7 17L17 7M8.5 7H17v8.5" />,
   chevron: <path d="M6 9.5l6 6 6-6" />,
   back: <path d="M14.5 6l-6 6 6 6" />,

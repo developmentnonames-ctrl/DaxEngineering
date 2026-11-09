@@ -75,7 +75,7 @@ function summarySelect(storeId: string) {
     supersededBy: { select: ITEM_REF },
     balances: {
       where: { storeId },
-      select: { onHand: true, held: true, quarantine: true },
+      select: { onHand: true, held: true, quarantine: true, receiving: true },
     },
   } as const;
 }

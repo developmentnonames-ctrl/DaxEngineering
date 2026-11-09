@@ -5,7 +5,7 @@ import { useDebouncedCallback } from '@mantine/hooks';
 import { useState, useTransition } from 'react';
 import { type PickerOption, searchBins, searchItems } from './search-actions';
 
-function RemotePicker({
+export function RemotePicker({
   search,
   initial,
   value,

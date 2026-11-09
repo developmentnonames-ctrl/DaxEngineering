@@ -6,9 +6,21 @@ import { LabelsController } from './labels.controller';
 import { LocationsController } from './locations.controller';
 import { LocationsService } from './locations.service';
 import { MainStore } from './main-store.service';
+import { DiscrepanciesController } from './receiving/discrepancies.controller';
+import { DiscrepanciesService } from './receiving/discrepancies.service';
+import {
+  GrnsController,
+  ReceivingSummaryController,
+} from './receiving/grns.controller';
+import { GrnsService } from './receiving/grns.service';
+import { MovementsController } from './receiving/movements.controller';
+import { MovementsService } from './receiving/movements.service';
+import { PutawayController } from './receiving/putaway.controller';
+import { PutawayService } from './receiving/putaway.service';
 import { ScanController } from './scan.controller';
 import { ScanService } from './scan.service';
 import { StockController } from './stock.controller';
+import { StockPostingService } from './stock/stock-posting.service';
 import { SummaryController } from './summary.controller';
 
 @Module({
@@ -20,8 +32,29 @@ import { SummaryController } from './summary.controller';
     LabelsController,
     ScanController,
     SummaryController,
+    GrnsController,
+    ReceivingSummaryController,
+    PutawayController,
+    DiscrepanciesController,
+    MovementsController,
   ],
-  providers: [MainStore, ItemsService, LocationsService, ScanService],
-  exports: [MainStore, ItemsService, LocationsService, ScanService],
+  providers: [
+    MainStore,
+    ItemsService,
+    LocationsService,
+    ScanService,
+    StockPostingService,
+    GrnsService,
+    PutawayService,
+    DiscrepanciesService,
+    MovementsService,
+  ],
+  exports: [
+    MainStore,
+    ItemsService,
+    LocationsService,
+    ScanService,
+    StockPostingService,
+  ],
 })
 export class InventoryServerModule {}

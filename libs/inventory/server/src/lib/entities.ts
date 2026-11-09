@@ -5,6 +5,8 @@ type ItemField = keyof typeof Prisma.ItemScalarFieldEnum;
 type BinField = keyof typeof Prisma.BinScalarFieldEnum;
 type BrandField = keyof typeof Prisma.BrandScalarFieldEnum;
 type MachineModelField = keyof typeof Prisma.MachineModelScalarFieldEnum;
+type GrnField = keyof typeof Prisma.GrnScalarFieldEnum;
+type DiscrepancyField = keyof typeof Prisma.DiscrepancyScalarFieldEnum;
 
 export const itemEntity = defineEntity<ItemField>({
   key: 'inventory.item',
@@ -153,9 +155,67 @@ export const machineModelEntity = defineEntity<MachineModelField>({
   },
 });
 
+const shown = (label: string) =>
+  ({ label, tier: 'INTERNAL', locked: true }) as const;
+
+export const grnEntity = defineEntity<GrnField>({
+  key: 'inventory.grn',
+  moduleKey: 'inventory',
+  label: 'Goods received notes',
+  table: 'inventory.grn',
+  fields: {
+    id: shown('ID'),
+    number: { ...shown('GRN number'), filterable: true, sortable: true },
+    subtype: { ...shown('Type'), writable: true, filterable: true },
+    status: { ...shown('Status'), filterable: true },
+    supplierId: { ...shown('Supplier'), filterable: true },
+    supplierName: { ...shown('Supplier name'), filterable: true },
+    deliveryNote: { ...shown('Delivery note'), writable: true },
+    deliveryDate: { ...shown('Delivery date'), writable: true },
+    notes: { ...shown('Notes'), writable: true },
+    checkedBy: shown('Checked by'),
+    checkedAt: shown('Checked'),
+    postedBy: shown('Posted by'),
+    postedAt: { ...shown('Posted'), sortable: true },
+    reversedBy: shown('Reversed by'),
+    reversedAt: shown('Reversed'),
+    reverseReason: shown('Reason for reversal'),
+    version: shown('Version'),
+    createdAt: { ...shown('Created'), sortable: true },
+    createdBy: { label: 'Created by', tier: 'INTERNAL' },
+    updatedAt: shown('Updated'),
+    updatedBy: { label: 'Updated by', tier: 'INTERNAL' },
+  },
+});
+
+export const discrepancyEntity = defineEntity<DiscrepancyField>({
+  key: 'inventory.discrepancy',
+  moduleKey: 'inventory',
+  label: 'Shortage and damage',
+  table: 'inventory.discrepancy',
+  fields: {
+    id: shown('ID'),
+    grnId: shown('GRN'),
+    grnLineId: shown('GRN line'),
+    itemId: shown('Item'),
+    kind: { ...shown('Kind'), filterable: true },
+    qty: shown('Quantity'),
+    status: { ...shown('Status'), filterable: true },
+    notes: { ...shown('Notes'), writable: true },
+    closeNote: shown('Closing note'),
+    closedBy: shown('Closed by'),
+    closedAt: shown('Closed'),
+    version: shown('Version'),
+    createdAt: { ...shown('Created'), sortable: true },
+    createdBy: { label: 'Created by', tier: 'INTERNAL' },
+  },
+});
+
 export const INVENTORY_ENTITIES: readonly EntityDef[] = [
   itemEntity,
   binEntity,
   brandEntity,
   machineModelEntity,
+  grnEntity,
+  discrepancyEntity,
 ];

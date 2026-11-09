@@ -1,12 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
+import { InventoryJobsModule } from '@dax/inventory-server';
 import { WorkerService } from '@dax/platform-core';
 import { loadWorkerEnv, WorkerAppModule } from './worker.module';
 
 async function bootstrap(): Promise<void> {
   const env = loadWorkerEnv();
   const app = await NestFactory.createApplicationContext(
-    WorkerAppModule.forRoot(env),
+    WorkerAppModule.forRoot(env, [InventoryJobsModule]),
     { bufferLogs: true },
   );
   const logger = app.get(Logger);
