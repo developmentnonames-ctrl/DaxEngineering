@@ -28,9 +28,7 @@ export function PageHead({
         <h1 className="dax-h1">{title}</h1>
         {lede ? <p className="dax-lede">{lede}</p> : null}
       </div>
-      {actions ? (
-        <div className="dax-head-actions">{actions}</div>
-      ) : null}
+      {actions ? <div className="dax-head-actions">{actions}</div> : null}
     </div>
   );
 }

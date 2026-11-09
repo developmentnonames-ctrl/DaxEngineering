@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "UNLICENSED",
   "scripts": {
-    "check": "nx sync && nx run-many -t lint typecheck test build && pnpm lint:copy && pnpm lint:prisma",
+    "check": "nx sync && nx format:check && nx run-many -t lint typecheck test build && pnpm lint:copy && pnpm lint:prisma",
     "lint:copy": "tsx tools/scripts/copy-lint.ts",
     "lint:prisma": "tsx tools/scripts/prisma-lint.ts libs/platform/db/prisma",
     "db:up": "docker compose up -d",
