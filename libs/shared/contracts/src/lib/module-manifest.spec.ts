@@ -5,7 +5,7 @@ import {
   ManifestError,
   permissionKeys,
   type PermissionKeysOf,
-} from './module-manifest.js';
+} from './module-manifest';
 
 const sample = defineModule({
   key: 'sample',

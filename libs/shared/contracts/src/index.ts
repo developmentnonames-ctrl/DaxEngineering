@@ -1,2 +1,2 @@
-export * from './lib/module-manifest.js';
-export * from './lib/primitives.js';
+export * from './lib/module-manifest';
+export * from './lib/primitives';

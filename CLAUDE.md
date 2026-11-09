@@ -36,6 +36,6 @@ Phase 1 is Stores / Inventory only; other modules plug in later. Read `docs/arch
 ## Code style
 
 - TypeScript strict. Zod for all external input (env, request bodies, API responses in Next).
-- Contract libs are ESM with `.js` import suffixes; server libs are CommonJS-style (no suffixes).
+- Libraries use extensionless relative imports. Libraries used only by Next (`web-data-access`, `web-shell`) use bundler module resolution.
 - NestJS tests use Vitest with the SWC plugin (legacy decorators).
 - Comments follow the `comments` skill (`.claude/skills/comments`): default to none, one line max, fix the code instead of explaining it.

@@ -1,6 +1,6 @@
 import { permissionKeys } from '@dax/contracts';
 import { describe, expect, it } from 'vitest';
-import { partiesManifest } from './manifest.js';
+import { partiesManifest } from './manifest';
 
 describe('partiesManifest', () => {
   it('declares customer and supplier permissions', () => {

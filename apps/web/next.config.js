@@ -19,6 +19,11 @@ const nextConfig = {
   output:
     process.env['NEXT_OUTPUT'] === 'standalone' ? 'standalone' : undefined,
   outputFileTracingRoot: join(__dirname, '../..'),
+  transpilePackages: [
+    '@dax/platform-contract',
+    '@dax/web-data-access',
+    '@dax/web-shell',
+  ],
   poweredByHeader: false,
   reactStrictMode: true,
   productionBrowserSourceMaps: false,

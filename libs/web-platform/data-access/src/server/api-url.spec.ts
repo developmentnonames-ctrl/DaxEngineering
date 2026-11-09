@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
-const { apiUrl } = await import('./api-url.js');
+const { apiUrl } = await import('./api-url');
 
 describe('apiUrl', () => {
   it('prefixes /api on the private base URL', () => {
