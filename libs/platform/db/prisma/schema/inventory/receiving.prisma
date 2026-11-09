@@ -1,0 +1,145 @@
+enum MovementType {
+  RECEIVE
+  RECEIVE_DAMAGED
+  PUTAWAY_OUT
+  PUTAWAY_IN
+  REVERSAL
+
+  @@schema("inventory")
+}
+
+enum GrnStatus {
+  DRAFT
+  CHECKED
+  POSTED
+  PUT_AWAY
+  CANCELLED
+  REVERSED
+
+  @@schema("inventory")
+}
+
+enum GrnSubtype {
+  FOR
+  LOC
+
+  @@schema("inventory")
+}
+
+enum DiscrepancyKind {
+  SHORT
+  EXCESS
+  DAMAGED
+  WRONG_ITEM
+
+  @@schema("inventory")
+}
+
+enum DiscrepancyStatus {
+  OPEN
+  CLOSED
+
+  @@schema("inventory")
+}
+
+model StockLedger {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  occurredAt   DateTime     @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  storeId      String       @map("store_id") @db.Uuid
+  itemId       String       @map("item_id") @db.Uuid
+  item         Item         @relation(fields: [itemId], references: [id])
+  binId        String       @map("bin_id") @db.Uuid
+  bin          Bin          @relation(fields: [binId], references: [id])
+  qty          Decimal      @db.Decimal(14, 3)
+  binQtyAfter  Decimal      @map("bin_qty_after") @db.Decimal(14, 3)
+  movement     MovementType
+  docType      String       @map("doc_type")
+  docId        String       @map("doc_id") @db.Uuid
+  docLineId    String?      @map("doc_line_id") @db.Uuid
+  docNumber    String?      @map("doc_number")
+  reversalOf   String?      @map("reversal_of") @db.Uuid
+  actorId      String       @map("actor_id") @db.Uuid
+  requestId    String?      @map("request_id")
+
+  @@index([itemId, occurredAt])
+  @@index([binId, occurredAt])
+  @@index([docType, docId])
+  @@map("stock_ledger")
+  @@schema("inventory")
+}
+
+model Grn {
+  id            String          @id @default(uuid(7)) @db.Uuid
+  number        String?         @unique
+  subtype       GrnSubtype
+  status        GrnStatus       @default(DRAFT)
+  supplierId    String          @map("supplier_id") @db.Uuid
+  supplierName  String          @map("supplier_name")
+  deliveryNote  String?         @map("delivery_note")
+  deliveryDate  DateTime?       @map("delivery_date") @db.Date
+  notes         String?
+  checkedBy     String?         @map("checked_by") @db.Uuid
+  checkedAt     DateTime?       @map("checked_at") @db.Timestamptz(3)
+  postedBy      String?         @map("posted_by") @db.Uuid
+  postedAt      DateTime?       @map("posted_at") @db.Timestamptz(3)
+  reversedBy    String?         @map("reversed_by") @db.Uuid
+  reversedAt    DateTime?       @map("reversed_at") @db.Timestamptz(3)
+  reverseReason String?         @map("reverse_reason")
+  version       Int             @default(1)
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy     String          @map("created_by") @db.Uuid
+  updatedAt     DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy     String          @map("updated_by") @db.Uuid
+  lines         GrnLine[]
+  discrepancies Discrepancy[]
+
+  @@index([status, createdAt])
+  @@map("grn")
+  @@schema("inventory")
+}
+
+model GrnLine {
+  id            String        @id @default(uuid(7)) @db.Uuid
+  grnId         String        @map("grn_id") @db.Uuid
+  grn           Grn           @relation(fields: [grnId], references: [id], onDelete: Cascade)
+  lineNo        Int           @map("line_no")
+  itemId        String        @map("item_id") @db.Uuid
+  item          Item          @relation(fields: [itemId], references: [id])
+  qtyExpected   Decimal?      @map("qty_expected") @db.Decimal(14, 3)
+  qtyGood       Decimal       @default(0) @map("qty_good") @db.Decimal(14, 3)
+  qtyDamaged    Decimal       @default(0) @map("qty_damaged") @db.Decimal(14, 3)
+  qtyPutAway    Decimal       @default(0) @map("qty_put_away") @db.Decimal(14, 3)
+  wrongItem     Boolean       @default(false) @map("wrong_item")
+  notes         String?
+  discrepancies Discrepancy[]
+
+  @@unique([grnId, lineNo])
+  @@index([itemId])
+  @@map("grn_line")
+  @@schema("inventory")
+}
+
+model Discrepancy {
+  id        String            @id @default(uuid(7)) @db.Uuid
+  grnId     String            @map("grn_id") @db.Uuid
+  grn       Grn               @relation(fields: [grnId], references: [id])
+  grnLineId String?           @map("grn_line_id") @db.Uuid
+  grnLine   GrnLine?          @relation(fields: [grnLineId], references: [id])
+  itemId    String            @map("item_id") @db.Uuid
+  item      Item              @relation(fields: [itemId], references: [id])
+  kind      DiscrepancyKind
+  qty       Decimal           @db.Decimal(14, 3)
+  status    DiscrepancyStatus @default(OPEN)
+  notes     String?
+  closeNote String?           @map("close_note")
+  closedBy  String?           @map("closed_by") @db.Uuid
+  closedAt  DateTime?         @map("closed_at") @db.Timestamptz(3)
+  version   Int               @default(1)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy String            @map("created_by") @db.Uuid
+
+  @@index([status, createdAt])
+  @@index([grnId])
+  @@map("discrepancy")
+  @@schema("inventory")
+}

@@ -15,7 +15,9 @@
     "dev:api": "nx serve api",
     "dev:web": "nx dev web",
     "dev:admin": "nx dev admin",
-    "kill": "npx --yes kill-my-port@1.1.2 3100 4200 4300"
+    "kill": "npx --yes kill-my-port@1.1.2 3100 4200 4300",
+    "db:test:reset": "tsx tools/scripts/test-db.ts reset",
+    "test:db": "tsx tools/scripts/test-db.ts run"
   },
   "private": true,
   "devDependencies": {

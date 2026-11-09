@@ -44,3 +44,18 @@ export const UOM_OPTIONS = UOMS.map((u) => ({
 export function uomLabel(code: string): string {
   return UOMS.find((u) => u.code === code)?.label ?? code;
 }
+
+const day = new Intl.DateTimeFormat('en-LK', {
+  timeZone: 'UTC',
+  dateStyle: 'medium',
+});
+
+export function formatDay(value: string | null): string {
+  if (!value) return '—';
+  const d = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+  return Number.isNaN(d.getTime()) ? value : day.format(d);
+}
+
+export function allowsFraction(uom: string): boolean {
+  return UOMS.find((u) => u.code === uom)?.fraction ?? false;
+}

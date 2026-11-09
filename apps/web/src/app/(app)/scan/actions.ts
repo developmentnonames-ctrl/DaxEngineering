@@ -1,9 +1,9 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { z } from 'zod';
 import { ScanResult } from '@dax/inventory-contract';
 import { ApiError } from '@dax/web-data-access/server';
+import { ScanCode, scanLookupPath } from '../../../lib/scan-code';
 import { api, safePath } from '../../../lib/server';
 
 export type ScanOutcome =
@@ -20,22 +20,12 @@ export type ScanOutcome =
   | { type: 'none' }
   | { type: 'error'; message: string };
 
-const Code = z.string().trim().min(1).max(512);
-const LABEL_LINK = /\/q\/([ib])\/([A-Za-z0-9_-]{4,128})\/?$/;
-
-function lookupPath(code: string): string {
-  const link = LABEL_LINK.exec(code.split(/[?#]/)[0] ?? '');
-  return link
-    ? `/inventory/qr/${link[1]}/${link[2]}`
-    : `/inventory/scan?code=${encodeURIComponent(code)}`;
-}
-
 export async function scanCode(raw: string): Promise<ScanOutcome> {
-  const code = Code.safeParse(raw);
+  const code = ScanCode.safeParse(raw);
   if (!code.success) return { type: 'none' };
   let result: ScanResult;
   try {
-    result = await api.request(lookupPath(code.data), (d) =>
+    result = await api.request(scanLookupPath(code.data), (d) =>
       ScanResult.parse(d),
     );
   } catch (error) {

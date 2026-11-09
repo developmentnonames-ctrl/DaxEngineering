@@ -1096,3 +1096,149 @@ input:checked + .dax-switch-track .dax-switch-thumb {
   margin-top: auto;
   padding-top: 12px;
 }
+
+/* Receiving: line cards, steppers and the sticky action bar */
+.dax-line {
+  background: var(--dax-soft);
+  border-radius: 20px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 5px solid var(--dax-line-strong);
+  min-width: 0;
+}
+.dax-line[data-tone='ok'] {
+  border-left-color: var(--dax-ok);
+}
+.dax-line[data-tone='bad'] {
+  border-left-color: var(--dax-bad);
+}
+.dax-line[data-tone='yel'] {
+  border-left-color: var(--dax-yel);
+}
+.dax-line[data-flash='true'] {
+  box-shadow: 0 0 0 3px var(--dax-int);
+}
+.dax-line-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.dax-line-top .p {
+  font-size: 17px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.dax-steppers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+.dax-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dax-stepper > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dax-muted);
+}
+.dax-stepper > div {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 52px;
+  gap: 8px;
+  align-items: center;
+}
+.dax-stepper input {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.dax-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--dax-line);
+  overflow: hidden;
+}
+.dax-progress > i {
+  display: block;
+  height: 100%;
+  background: var(--dax-ok);
+  border-radius: inherit;
+}
+.dax-bar {
+  position: sticky;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 10px 12px;
+  border-radius: 22px;
+  background: var(--dax-panel);
+  box-shadow: var(--dax-shadow);
+}
+.dax-bar .note {
+  margin-right: auto;
+  font-size: 13px;
+  color: var(--dax-muted);
+}
+.dax-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.dax-photo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 16px;
+  background: var(--dax-soft);
+  color: var(--dax-ink);
+  text-decoration: none;
+  min-width: 0;
+  font-size: 13px;
+}
+.dax-photo:hover {
+  background: var(--dax-line);
+}
+.dax-photo img,
+.dax-photo .ph {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--dax-panel);
+  display: grid;
+  place-items: center;
+  color: var(--dax-muted);
+}
+.dax-photo span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dax-qty-in {
+  color: var(--dax-ok);
+  font-weight: 600;
+}
+.dax-qty-out {
+  color: var(--dax-bad);
+  font-weight: 600;
+}
+@media (max-width: 900px) {
+  .dax-bar {
+    bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+  .dax-line {
+    padding: 14px;
+  }
+}

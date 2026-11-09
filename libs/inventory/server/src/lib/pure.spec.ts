@@ -88,8 +88,19 @@ describe('stock figures', () => {
       onHand: '0.3',
       held: '0.1',
       quarantine: '0',
+      receiving: '0',
       free: '0.2',
     });
+  });
+
+  it('keeps quarantine and receiving stock out of free stock', () => {
+    const { figures } = stockFigures({
+      onHand: '10',
+      held: '2',
+      quarantine: '1.5',
+      receiving: '3',
+    });
+    expect(figures.free).toBe('3.5');
   });
 
   it('shows zeros when there is no balance row', () => {
@@ -97,6 +108,7 @@ describe('stock figures', () => {
       onHand: '0',
       held: '0',
       quarantine: '0',
+      receiving: '0',
       free: '0',
     });
   });

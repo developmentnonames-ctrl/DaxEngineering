@@ -27,10 +27,6 @@ export const inventoryManifest = defineModule({
       actions: { view: {}, manage: {}, print_label: { label: 'Print labels' } },
     },
     stock: { name: 'Stock levels', actions: { view: {}, export: {} } },
-    arrival: {
-      name: 'Expected arrivals',
-      actions: { view: {}, create: {}, edit: {}, cancel: {} },
-    },
     grn: {
       name: 'Goods received (GRN)',
       actions: {
@@ -152,6 +148,13 @@ export const inventoryManifest = defineModule({
       permission: 'inventory.catalog.view',
       icon: 'layers',
     },
+    {
+      key: 'inventory.receiving',
+      label: 'Receiving',
+      path: '/inventory/receiving',
+      permission: 'inventory.grn.view',
+      icon: 'truck',
+    },
   ],
   defaultGrants: {
     stores_manager: { '*': 'ALL' },
@@ -164,9 +167,6 @@ export const inventoryManifest = defineModule({
       'location.view': 'ALL',
       'location.print_label': 'ALL',
       'stock.view': 'ALL',
-      'arrival.view': 'ALL',
-      'arrival.create': 'ALL',
-      'arrival.edit': 'ALL',
       'grn.view': 'ALL',
       'grn.check': 'ALL',
       'grn.post': 'ALL',
