@@ -53,13 +53,20 @@ export function createApi(app: AppName) {
       body = init.body;
     }
     if (init.accept) h.set('accept', init.accept);
-    return fetch(apiUrl(path, config.apiUrl), {
-      method: init.method ?? 'GET',
-      headers: h,
-      body,
-      cache: 'no-store',
-      redirect: 'manual',
-    });
+    try {
+      return await fetch(apiUrl(path, config.apiUrl), {
+        method: init.method ?? 'GET',
+        headers: h,
+        body,
+        cache: 'no-store',
+        redirect: 'manual',
+      });
+    } catch {
+      throw new ApiError(503, {
+        code: 'API_UNAVAILABLE',
+        message: 'The server is starting up or cannot be reached.',
+      });
+    }
   }
 
   async function request<T>(

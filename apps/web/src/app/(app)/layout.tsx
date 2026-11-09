@@ -8,6 +8,7 @@ const FALLBACK_ICONS: Record<string, string> = {
   'inventory.locations': 'grid',
   'inventory.catalog': 'layers',
   'inventory.receiving': 'truck',
+  'inventory.issuing': 'send',
   'parties.customers': 'users',
   'parties.suppliers': 'building',
 };

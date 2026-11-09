@@ -1,0 +1,1 @@
+export const THEME_SCRIPT = `try{var s=localStorage.getItem("mantine-color-scheme-value");var c=s==="light"||s==="dark"?s:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-mantine-color-scheme",c)}catch(e){}`;

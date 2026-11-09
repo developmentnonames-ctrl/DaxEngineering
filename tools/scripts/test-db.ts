@@ -61,9 +61,19 @@ function reset() {
 
 function test() {
   for (const project of DB_PROJECTS) {
-    run('pnpm', ['nx', 'run', `${project}:test`, '--skip-nx-cache'], {
-      TEST_DATABASE_URL: APP,
-    });
+    run(
+      'pnpm',
+      [
+        'nx',
+        'run',
+        `${project}:test`,
+        '--skip-nx-cache',
+        '--output-style=static',
+      ],
+      {
+        TEST_DATABASE_URL: APP,
+      },
+    );
   }
 }
 

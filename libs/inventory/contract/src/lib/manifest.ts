@@ -46,7 +46,8 @@ export const inventoryManifest = defineModule({
       actions: {
         view: { scopes: ['OWN', 'DEPARTMENT', 'ALL'] },
         create: {},
-        check: { label: 'Check bin and holds' },
+        check: { label: 'Check and reserve stock' },
+        allocate: { label: 'Assign new stock to waiting requests' },
         cancel: {},
         short_close: { label: 'Close with short lines' },
       },
@@ -65,7 +66,6 @@ export const inventoryManifest = defineModule({
       actions: {
         view: { scopes: ['OWN', 'DEPARTMENT', 'ALL'] },
         create: {},
-        extend: {},
         release: {},
         convert: { label: 'Convert to MRN' },
       },
@@ -155,6 +155,20 @@ export const inventoryManifest = defineModule({
       permission: 'inventory.grn.view',
       icon: 'truck',
     },
+    {
+      key: 'inventory.issuing',
+      label: 'Issuing',
+      path: '/inventory/issuing',
+      permission: 'inventory.mrn.view',
+      icon: 'send',
+    },
+    {
+      key: 'inventory.holds',
+      label: 'Holds',
+      path: '/inventory/issuing/holds',
+      permission: 'inventory.hold.view',
+      icon: 'lock',
+    },
   ],
   defaultGrants: {
     stores_manager: { '*': 'ALL' },
@@ -181,7 +195,6 @@ export const inventoryManifest = defineModule({
       'aod.attach_signed': 'ALL',
       'hold.view': 'ALL',
       'hold.create': 'ALL',
-      'hold.extend': 'ALL',
       'hold.release': 'ALL',
       'hold.convert': 'ALL',
       'return_note.view': 'ALL',

@@ -6,6 +6,7 @@ export interface PartRef {
   brand: string;
   description: string;
   uom: string;
+  free?: string;
 }
 
 export interface BinRef {

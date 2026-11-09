@@ -19,6 +19,7 @@ import {
 import { formatQty } from '../../lib/format';
 import { requireCapabilities } from '../../lib/server';
 import { getInventorySummary, listStock } from './inventory/_lib/data';
+import { getIssuingSummary } from './inventory/issuing/_lib/data';
 import { getReceivingSummary } from './inventory/receiving/_lib/data';
 import { getPartiesSummary } from './parties/_party/data';
 
@@ -32,12 +33,15 @@ export default async function HomePage() {
   const canScan = canSeeItems || can('inventory.location.view');
 
   const canPutAway = can('inventory.grn.putaway');
+  const canSign = can('inventory.aod.attach_signed');
+  const canAllocate = can('inventory.mrn.allocate');
   const [inventory, parties, low, receiving] = await Promise.all([
     canSeeItems ? getInventorySummary() : null,
     getPartiesSummary(),
     canSeeStock ? listStock({ belowMin: 'true', limit: '5' }) : null,
     canPutAway ? getReceivingSummary() : null,
   ]);
+  const issuing = canSign || canAllocate ? await getIssuingSummary() : null;
   const firstName = caps.user.name.trim().split(/\s+/)[0] ?? caps.user.name;
 
   const kpis: Kpi[] = [];
@@ -99,6 +103,26 @@ export default async function HomePage() {
       sub: 'Point the camera at a bin or item label.',
       icon: 'scan',
       tint: 'orange',
+    });
+  if (canSign)
+    tiles.push({
+      href: '/inventory/issuing/aods?status=ISSUED',
+      title: 'Awaiting signature',
+      sub: issuing
+        ? `${count.format(issuing.awaitingSignature)} AODs need their signed copy.`
+        : 'Upload signed copies to complete AODs.',
+      icon: 'send',
+      tint: issuing?.awaitingSignature ? 'red' : 'gray',
+    });
+  if (canAllocate)
+    tiles.push({
+      href: '/inventory/issuing/mrns?status=WAITING',
+      title: 'Waiting for stock',
+      sub: issuing
+        ? `${count.format(issuing.mrnWaiting)} requests waiting for stock.`
+        : 'Assign new stock to waiting requests.',
+      icon: 'history',
+      tint: issuing?.mrnWaiting ? 'orange' : 'gray',
     });
   if (canPutAway)
     tiles.push({

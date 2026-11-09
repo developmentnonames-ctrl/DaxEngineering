@@ -13,6 +13,7 @@ import {
 import { useDebouncedCallback, useMediaQuery } from '@mantine/hooks';
 import { useRef, useState, useTransition } from 'react';
 import { Icon, LinkList, Mono, Scanner } from '@dax/web-shell';
+import { formatQty } from '../../../../../lib/format';
 import { findParts, getPart, lookupPart } from './actions';
 import type { PartLookup, PartRef } from './types';
 
@@ -20,7 +21,7 @@ function PartButton({
   part,
   onPick,
 }: {
-  part: Omit<PartRef, 'uom'>;
+  part: Omit<PartRef, 'uom'> & { uom?: string };
   onPick: () => void;
 }) {
   return (
@@ -33,7 +34,15 @@ function PartButton({
         <Mono>{part.partNo}</Mono>
       </b>{' '}
       <span className="dax-muted">{part.brand}</span>
-      <span className="dax-sub">{part.description}</span>
+      <span className="dax-sub">
+        {part.description}
+        {part.free !== undefined ? (
+          <>
+            {' '}
+            · Free <b>{formatQty(part.free)}</b> {part.uom ?? ''}
+          </>
+        ) : null}
+      </span>
     </UnstyledButton>
   );
 }

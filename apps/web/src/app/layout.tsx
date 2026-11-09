@@ -1,7 +1,10 @@
 import '@mantine/core/styles.css';
 import '@dax/web-shell/styles.css';
 import './global.css';
-import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
+import { mantineHtmlProps } from '@mantine/core';
+import { headers } from 'next/headers';
+import Script from 'next/script';
+import { THEME_SCRIPT } from '@dax/web-shell/server';
 import type { Metadata, Viewport } from 'next';
 import { DaxProvider } from '@dax/web-shell';
 import { fontVariables } from '@dax/web-shell/fonts';
@@ -28,7 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -36,7 +39,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={fontVariables} {...mantineHtmlProps}>
       <head>
-        <ColorSchemeScript defaultColorScheme="auto" />
+        <Script
+          id="dax-theme"
+          strategy="beforeInteractive"
+          nonce={(await headers()).get('x-nonce') ?? undefined}
+        >
+          {THEME_SCRIPT}
+        </Script>
       </head>
       <body>
         <DaxProvider>{children}</DaxProvider>

@@ -37,6 +37,7 @@ Three goals drive the design:
 | Stores UX        | Phone camera scanning in a PWA (online only) · QR labels on A4 sticker sheets (3×8) · bin codes Zone-Rack-Shelf-Position, e.g. A-01-03-B                                                                                                                                                                                                                                                                                                                                                                                |
 | Master data      | Brands and machine models are managed lists; every item has a brand · superseded parts show "replaced by" and old stock can still be issued · customer/supplier codes auto-numbered (CUS-0001, SUP-0001) · CSV import for items, customers, suppliers (dry run, all-or-nothing) · no item photos yet                                                                                                                                                                                                                    |
 | Receiving        | No expected arrivals: every delivery is received on a GRN against a supplier, and each line has an optional delivery-note quantity used for short/excess reports · damaged goods received into quarantine · over-receipt allowed and flagged as excess · stock is free only after put-away · one person may check and post · GRN/FOR vs GRN/LOC from the supplier, editable · no back-dating (delivery date kept as information) · a posted GRN can be reversed by the Stores Manager only while its stock is untouched |
+| Issuing          | MRN check reserves the free stock and the rest waits; only the Stores Manager assigns new stock to waiting MRNs (nothing automatic) · holds have no expiry and convert to an MRN only as a whole · scanning while picking is optional · an AOD is complete only once the signed copy is uploaded · printable AOD on A4                                                                                                                                                                                                  |
 
 ## Topology
 
@@ -253,7 +254,7 @@ departments are read-only viewers.
 | M2  | Registry, ACM, policy cache, visibility layer, audit, crypto, numbering, approvals, files, events, admin panel | built  |
 | M3  | Parties, items, bins, QR labels, stock views, scanner, PWA                                                     | built  |
 | M4  | Stock engine, receiving, GRN, put-away                                                                         | built  |
-| M5  | MRN, AOD, holds                                                                                                |        |
+| M5  | MRN, AOD, holds                                                                                                | built  |
 | M6  | Returns, counts, warranty bin, reports                                                                         |        |
 | M7  | Hardening, backup drill, UAT, go-live                                                                          |        |
 

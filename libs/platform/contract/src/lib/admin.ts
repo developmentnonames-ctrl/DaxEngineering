@@ -293,3 +293,8 @@ export const AdminSummary = z.object({
   auditToday: z.number().int(),
 });
 export type AdminSummary = z.infer<typeof AdminSummary>;
+
+export const DepartmentOptions = z.object({
+  departments: z.array(z.object({ id: z.uuid(), name: z.string() })),
+});
+export type DepartmentOptions = z.infer<typeof DepartmentOptions>;
