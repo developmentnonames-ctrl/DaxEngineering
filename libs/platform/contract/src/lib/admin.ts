@@ -275,6 +275,7 @@ export const Capabilities = z.object({
       label: z.string(),
       path: z.string(),
       moduleKey: z.string(),
+      icon: z.string().nullable().default(null),
     }),
   ),
   permissions: z.record(z.string(), Scope),
@@ -282,3 +283,13 @@ export const Capabilities = z.object({
   policyVersion: z.string(),
 });
 export type Capabilities = z.infer<typeof Capabilities>;
+
+export const AdminSummary = z.object({
+  users: z.number().int(),
+  active: z.number().int(),
+  locked: z.number().int(),
+  invited: z.number().int(),
+  roles: z.number().int(),
+  auditToday: z.number().int(),
+});
+export type AdminSummary = z.infer<typeof AdminSummary>;

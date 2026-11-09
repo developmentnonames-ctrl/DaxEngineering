@@ -23,6 +23,9 @@
     }
   },
   "dependencies": {
+    "@dax/contracts": "workspace:*",
+    "@dax/inventory-contract": "workspace:*",
+    "@dax/parties-contract": "workspace:*",
     "@dax/platform-contract": "workspace:*",
     "@dax/web-data-access": "workspace:*",
     "@dax/web-shell": "workspace:*",

@@ -1,0 +1,1098 @@
+:root {
+  --dax-bg: #f3f5f8;
+  --dax-panel: #ffffff;
+  --dax-soft: #f1f3f6;
+  --dax-line: #e5e8ed;
+  --dax-line-strong: #d3d8df;
+  --dax-ink: #12232a;
+  --dax-muted: #6b7680;
+  --dax-on-ink: #ffffff;
+  --dax-hi: #ee7a12;
+  --dax-hi-soft: #fff2e5;
+  --dax-int: #1f7ae0;
+  --dax-int-soft: #e8f1fd;
+  --dax-ext: #7b4fd6;
+  --dax-ext-soft: #f1ebfc;
+  --dax-ok: #1d9a60;
+  --dax-ok-soft: #e3f5ec;
+  --dax-bad: #d63c3c;
+  --dax-bad-soft: #fdecec;
+  --dax-yel: #e6b400;
+  --dax-yel-soft: #fff6d1;
+  --dax-yel-ink: #6e5300;
+  --dax-tint-orange: #fff3e8;
+  --dax-tint-blue: #edf4fe;
+  --dax-tint-red: #fdeeee;
+  --dax-tint-gray: #f4f5f7;
+  --dax-shadow-card:
+    0 1px 2px rgba(16, 24, 32, 0.04), 0 16px 40px -18px rgba(16, 24, 32, 0.16);
+  --dax-shadow: 0 18px 50px rgba(15, 25, 35, 0.22);
+  --dax-radius-card: 28px;
+  --dax-top-h: 84px;
+  --dax-f-body:
+    var(--font-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+  --dax-f-mono:
+    var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, Menlo, Consolas,
+    monospace;
+}
+
+:root[data-mantine-color-scheme='dark'] {
+  --dax-bg: #0f1418;
+  --dax-panel: #171e24;
+  --dax-soft: #1d262d;
+  --dax-line: #26313a;
+  --dax-line-strong: #334150;
+  --dax-ink: #e9eef2;
+  --dax-muted: #93a0ab;
+  --dax-on-ink: #0f1418;
+  --dax-hi: #f0912f;
+  --dax-hi-soft: #3a2614;
+  --dax-int: #5ea1f2;
+  --dax-int-soft: #16273b;
+  --dax-ext: #a585f0;
+  --dax-ext-soft: #241b38;
+  --dax-ok: #4cc48a;
+  --dax-ok-soft: #14301f;
+  --dax-bad: #f07272;
+  --dax-bad-soft: #3a1a1a;
+  --dax-yel: #f0c93a;
+  --dax-yel-soft: #352c0c;
+  --dax-yel-ink: #f3d977;
+  --dax-tint-orange: #2a1f15;
+  --dax-tint-blue: #15212e;
+  --dax-tint-red: #2d1818;
+  --dax-tint-gray: #1b2229;
+  --dax-shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -18px rgba(0, 0, 0, 0.6);
+  --dax-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+}
+
+:root {
+  --mantine-color-body: var(--dax-bg);
+  --mantine-color-text: var(--dax-ink);
+  --mantine-color-dimmed: var(--dax-muted);
+  --mantine-color-default-border: var(--dax-line-strong);
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--dax-bg);
+  color: var(--dax-ink);
+  font-family: var(--dax-f-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.dax-mono {
+  font-family: var(--dax-f-mono);
+  font-weight: 500;
+}
+
+.dax-muted {
+  color: var(--dax-muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--dax-int);
+  outline-offset: 2px;
+}
+
+/* App frame: brand header, icon rail on the left, cards in the work area */
+.dax-top {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  height: var(--dax-top-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 32px;
+  background: var(--dax-bg);
+}
+.dax-top::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 28px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--dax-bg), transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  mask-image: linear-gradient(to bottom, black, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+}
+.dax-brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--dax-ink);
+  flex: none;
+}
+.dax-brand b {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+.dax-brand small {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--dax-muted);
+  align-self: flex-end;
+  margin-top: 2px;
+}
+.dax-app-pill {
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: var(--dax-ink);
+  color: var(--dax-on-ink);
+  white-space: nowrap;
+}
+.dax-top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dax-me {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid var(--dax-line);
+  border-radius: 999px;
+  padding: 5px 14px 5px 5px;
+  background: var(--dax-panel);
+  cursor: pointer;
+  color: var(--dax-ink);
+  font: inherit;
+}
+.dax-me:hover {
+  border-color: var(--dax-line-strong);
+}
+.dax-me div b {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.2;
+  text-align: left;
+}
+.dax-me div span {
+  display: block;
+  font-size: 12px;
+  color: var(--dax-muted);
+  line-height: 1.2;
+  text-align: left;
+}
+.dax-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 12px;
+  color: #fff;
+  background: var(--av, var(--dax-int));
+  flex: none;
+}
+
+.dax-shell {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 20px;
+  padding: 18px 32px 48px 20px;
+}
+.dax-rail {
+  z-index: 30;
+  position: sticky;
+  top: calc(var(--dax-top-h) + 18px);
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 6px;
+}
+.dax-rail a {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--dax-panel);
+  color: var(--dax-ink);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--dax-shadow-card);
+  transition: transform 0.15s;
+  text-decoration: none;
+}
+.dax-rail a:hover {
+  transform: translateY(-1px);
+}
+.dax-rail a[aria-current='page'] {
+  background: var(--dax-ink);
+  color: var(--dax-on-ink);
+}
+.dax-rail .tip {
+  position: absolute;
+  left: 66px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--dax-ink);
+  color: var(--dax-on-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+  z-index: 5;
+}
+.dax-rail a:hover .tip,
+.dax-rail a:focus-visible .tip {
+  opacity: 1;
+}
+.dax-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+svg.dax-ico {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Page head */
+.dax-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.dax-eyebrow {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dax-muted);
+}
+.dax-h1 {
+  font-size: 44px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  margin: 2px 0 0;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.dax-lede {
+  color: var(--dax-muted);
+  max-width: 70ch;
+  margin: 8px 0 0;
+}
+.dax-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--dax-muted);
+  text-decoration: none;
+  margin-bottom: 6px;
+}
+.dax-back:hover {
+  color: var(--dax-ink);
+}
+
+/* Cards */
+.dax-card {
+  background: var(--dax-panel);
+  border-radius: var(--dax-radius-card);
+  padding: 24px 26px;
+  box-shadow: var(--dax-shadow-card);
+  min-width: 0;
+}
+.dax-card-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.dax-card-h h2 {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+.dax-card.flush {
+  padding: 0 0 8px;
+  overflow: hidden;
+}
+.dax-card.flush > .dax-card-h {
+  padding: 22px 26px 0;
+}
+.dax-grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: 20px;
+}
+
+/* KPI tiles */
+.dax-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 16px;
+}
+.dax-kpi {
+  display: block;
+  background: var(--dax-panel);
+  border-radius: 24px;
+  padding: 18px 20px;
+  box-shadow: var(--dax-shadow-card);
+  position: relative;
+  overflow: hidden;
+  color: var(--dax-ink);
+  text-decoration: none;
+  transition: transform 0.12s;
+}
+a.dax-kpi:hover {
+  transform: translateY(-1px);
+}
+.dax-kpi::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  width: 36px;
+  height: 4px;
+  border-radius: 0 0 4px 4px;
+  background: var(--c, var(--dax-ink));
+}
+.dax-kpi .l {
+  font-size: 13px;
+  color: var(--dax-muted);
+}
+.dax-kpi .v {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tinted action tiles, like the prototype's task cards */
+.dax-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  grid-auto-rows: 1fr;
+  gap: 14px;
+}
+.dax-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 22px;
+  padding: 18px 20px;
+  color: var(--dax-ink);
+  text-decoration: none;
+  transition: transform 0.12s;
+  background: var(--dax-tint-gray);
+}
+.dax-tile:hover {
+  transform: translateY(-1px);
+}
+.dax-tile.orange {
+  background: var(--dax-tint-orange);
+}
+.dax-tile.blue {
+  background: var(--dax-tint-blue);
+}
+.dax-tile.red {
+  background: var(--dax-tint-red);
+}
+.dax-tile .badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--dax-on-ink);
+  background: var(--dax-ink);
+  margin-bottom: 4px;
+}
+.dax-tile b {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.dax-tile .sub {
+  color: var(--dax-muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Pills and chips */
+.dax-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  background: var(--dax-soft);
+  color: var(--dax-muted);
+}
+.dax-pill.ok {
+  background: var(--dax-ok-soft);
+  color: var(--dax-ok);
+}
+.dax-pill.bad {
+  background: var(--dax-bad-soft);
+  color: var(--dax-bad);
+}
+.dax-pill.hi {
+  background: var(--dax-hi-soft);
+  color: var(--dax-ink);
+  border-color: var(--dax-hi);
+}
+.dax-pill.int {
+  background: var(--dax-int-soft);
+  color: var(--dax-int);
+}
+.dax-pill.ext {
+  background: var(--dax-ext-soft);
+  color: var(--dax-ext);
+}
+.dax-pill.yel {
+  background: var(--dax-yel-soft);
+  color: var(--dax-yel-ink);
+}
+.dax-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dax-chips a,
+.dax-chips button {
+  border: 1.5px solid var(--dax-line-strong);
+  background: var(--dax-panel);
+  border-radius: 999px;
+  padding: 7px 16px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--dax-ink);
+  text-decoration: none;
+  font-family: inherit;
+}
+.dax-chips a:hover,
+.dax-chips button:hover {
+  border-color: var(--dax-ink);
+}
+.dax-chips [aria-pressed='true'],
+.dax-chips [aria-current='true'] {
+  background: var(--dax-ink);
+  color: var(--dax-on-ink);
+  border-color: var(--dax-ink);
+}
+
+.dax-chip-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  align-items: center;
+}
+.dax-chip-groups > .dax-chips + .dax-chips {
+  padding-left: 20px;
+  border-left: 1.5px solid var(--dax-line);
+}
+
+.dax-empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--dax-muted);
+  background: var(--dax-soft);
+  border-radius: 20px;
+}
+.dax-empty b {
+  display: block;
+  color: var(--dax-ink);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Facts list for detail pages */
+.dax-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px 18px;
+  margin: 0;
+  font-size: 14px;
+}
+.dax-facts dt {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dax-muted);
+}
+.dax-facts dd {
+  margin: 2px 0 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* Tables inside cards */
+.dax-card .mantine-Table-table th,
+.dax-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dax-muted);
+  white-space: nowrap;
+  border-bottom: 1.5px solid var(--dax-line-strong);
+}
+.dax-card .mantine-Table-table td {
+  border-bottom-color: var(--dax-line);
+}
+
+/* Utilities */
+.dax-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.dax-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.dax-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.dax-sub {
+  display: block;
+  color: var(--dax-muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.dax-link {
+  color: var(--dax-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.dax-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Round header button, like the prototype's primary buttons */
+.dax-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 10px 18px 10px 14px;
+  background: var(--dax-ink);
+  color: var(--dax-on-ink);
+  font-weight: 600;
+  font-size: 14.5px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.12s;
+}
+.dax-cta:hover {
+  opacity: 0.9;
+}
+
+/* Pill search box with an inline icon */
+.dax-search {
+  flex: 1 1 380px;
+  width: min(520px, 100%);
+  min-width: min(340px, 100%);
+  max-width: 520px;
+}
+.dax-search label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1.5px solid var(--dax-line-strong);
+  border-radius: 999px;
+  padding: 12px 20px;
+  background: var(--dax-panel);
+  color: var(--dax-muted);
+  cursor: text;
+}
+.dax-search label:focus-within {
+  border-color: var(--dax-ink);
+}
+.dax-search input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 15px;
+  color: var(--dax-ink);
+}
+.dax-search input::placeholder {
+  color: var(--dax-muted);
+}
+.dax-search.wide {
+  width: 100%;
+  max-width: none;
+}
+.dax-head-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 1 560px;
+  min-width: min(340px, 100%);
+}
+
+/* Filters and toolbars inside a card */
+.dax-card-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.dax-card.flush > .dax-card-tools {
+  padding: 0 26px;
+}
+.dax-card.flush > .dax-card-h + .dax-card-tools {
+  margin-top: 0;
+}
+.dax-card.flush > .dax-card-tools:first-child {
+  padding-top: 22px;
+}
+.dax-card.flush > .dax-card-body {
+  padding: 0 26px 22px;
+}
+.dax-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  align-items: flex-end;
+}
+
+/* Phone list rows inside a flush card */
+.dax-rows {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--dax-line);
+}
+.dax-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 18px;
+  border-top: 1px solid var(--dax-line);
+  min-width: 0;
+}
+.dax-row:first-child {
+  border-top: 0;
+}
+.dax-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Short linked list for dashboard cards */
+.dax-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dax-list li {
+  border-top: 1px solid var(--dax-line);
+}
+.dax-list li:first-child {
+  border-top: 0;
+}
+.dax-list a,
+.dax-list .dax-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: center;
+  padding: 12px 4px;
+  color: var(--dax-ink);
+  text-decoration: none;
+  border-radius: 12px;
+}
+.dax-list a:hover {
+  background: var(--dax-soft);
+}
+.dax-list .t {
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dax-list .s {
+  color: var(--dax-muted);
+  font-size: 13px;
+  grid-column: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dax-list .a {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Soft inset panel for nested blocks inside a card */
+.dax-inset {
+  background: var(--dax-soft);
+  border-radius: 20px;
+  padding: 16px 18px;
+}
+.dax-card .dax-paper {
+  box-shadow: none;
+  background: var(--dax-soft);
+}
+
+/* Square code badge, e.g. a zone letter */
+.dax-zone {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 8px;
+  border-radius: 12px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--dax-ink);
+  color: var(--dax-on-ink);
+  font-family: var(--dax-f-mono);
+  font-weight: 600;
+  font-size: 15px;
+  flex: none;
+}
+
+/* Figures row, e.g. stock on an item page */
+.dax-figs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+.dax-fig {
+  background: var(--dax-soft);
+  border-radius: 18px;
+  padding: 14px 16px;
+}
+.dax-fig .l {
+  font-size: 12.5px;
+  color: var(--dax-muted);
+  font-weight: 500;
+}
+.dax-fig .v {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.dax-fig .v small {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dax-muted);
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+.dax-fig.bad {
+  background: var(--dax-bad-soft);
+}
+.dax-fig.bad .v {
+  color: var(--dax-bad);
+}
+
+/* Auth screens: wordmark over one centred card */
+.dax-auth {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 64px;
+  gap: 28px;
+}
+.dax-auth .dax-brand b {
+  font-size: 44px;
+}
+.dax-auth .dax-brand small {
+  font-size: 13px;
+}
+.dax-auth-card {
+  width: min(440px, 100%);
+  background: var(--dax-panel);
+  border-radius: var(--dax-radius-card);
+  box-shadow: var(--dax-shadow-card);
+  padding: 30px 30px 28px;
+}
+.dax-auth-card .dax-eyebrow {
+  margin-bottom: 2px;
+}
+.dax-auth-card h1 {
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+  text-wrap: balance;
+}
+.dax-auth-card .dax-lede {
+  font-size: 14.5px;
+  margin-top: 6px;
+}
+.dax-auth-body {
+  margin-top: 22px;
+}
+
+/* Mantine tables inside cards: no stripes, roomy edges */
+.dax-card .mantine-Table-table {
+  font-size: 14px;
+}
+.dax-card.flush .mantine-Table-table th:first-child,
+.dax-card.flush .mantine-Table-table td:first-child {
+  padding-left: 26px;
+}
+.dax-card.flush .mantine-Table-table th:last-child,
+.dax-card.flush .mantine-Table-table td:last-child {
+  padding-right: 26px;
+}
+.dax-card .mantine-Table-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.dax-card.flush > .mantine-Table-scrollContainer:last-child,
+.dax-card.flush > :last-child {
+  margin-bottom: 0;
+}
+.dax-card.flush > .dax-pad-b {
+  padding-bottom: 8px;
+}
+
+/* Floating bar for a selection, above the phone nav */
+.dax-selbar {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 20px;
+  border-radius: 999px;
+  background: var(--dax-ink);
+  color: var(--dax-on-ink);
+  box-shadow: var(--dax-shadow);
+  max-width: calc(100% - 24px);
+  white-space: nowrap;
+}
+.dax-selbar b {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.dax-pager {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --dax-top-h: 64px;
+  }
+  .dax-top {
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .dax-app-pill {
+    display: none;
+  }
+  .dax-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px 16px 96px;
+    gap: 14px;
+  }
+  .dax-rail {
+    position: fixed;
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 40;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 4px;
+    padding: 8px;
+    border-radius: 999px;
+    background: var(--dax-panel);
+    box-shadow: var(--dax-shadow);
+    overflow-x: auto;
+  }
+  .dax-rail a {
+    width: 48px;
+    height: 48px;
+    flex: none;
+    box-shadow: none;
+    background: transparent;
+  }
+  .dax-rail .tip {
+    display: none;
+  }
+  .dax-h1 {
+    font-size: 32px;
+  }
+  .dax-card {
+    padding: 18px;
+    border-radius: 22px;
+  }
+  .dax-card.flush > .dax-card-h {
+    padding: 18px 18px 0;
+  }
+  .dax-card.flush > .dax-card-tools {
+    padding: 0 18px;
+  }
+  .dax-card.flush > .dax-card-tools:first-child {
+    padding-top: 18px;
+  }
+  .dax-card.flush > .dax-card-body {
+    padding: 0 18px 18px;
+  }
+  .dax-card.flush .mantine-Table-table th:first-child,
+  .dax-card.flush .mantine-Table-table td:first-child {
+    padding-left: 18px;
+  }
+  .dax-card.flush .mantine-Table-table th:last-child,
+  .dax-card.flush .mantine-Table-table td:last-child {
+    padding-right: 18px;
+  }
+  .dax-cta {
+    display: none;
+  }
+  .dax-selbar {
+    bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+  .dax-search {
+    width: 100%;
+  }
+  .dax-auth-card {
+    padding: 24px 20px;
+    border-radius: 22px;
+  }
+}
+@media (max-width: 560px) {
+  .dax-brand b {
+    font-size: 26px;
+  }
+  .dax-me div {
+    display: none;
+  }
+  .dax-me {
+    padding: 4px;
+  }
+}
+
+/* Mantine Paper and Card become prototype cards */
+.dax-paper {
+  background-color: var(--dax-panel);
+}
+.dax-paper[data-with-border] {
+  border-color: transparent;
+}
+.mantine-Table-thead {
+  background: transparent;
+}
+
+/* Plain switches: soft grey track, white knob, green when on */
+.dax-switch-track {
+  border: 0;
+  background-color: var(--dax-line-strong);
+  cursor: pointer;
+}
+.dax-switch-thumb {
+  border: 0;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(16, 24, 32, 0.25);
+}
+input:checked + .dax-switch-track {
+  background-color: var(--dax-ok);
+}
+input:checked + .dax-switch-track .dax-switch-thumb {
+  background-color: #fff;
+}
+
+/* Module cards: name and switch on one line, footer pinned to the bottom */
+.dax-module {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+}
+.dax-module-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.dax-module-top h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.dax-module-text {
+  margin: 0;
+  color: var(--dax-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.dax-module-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 12px;
+}

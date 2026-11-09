@@ -1,0 +1,45 @@
+model Customer {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  code          String   @unique
+  name          String
+  contactPerson String?  @map("contact_person")
+  phone         String?
+  email         String?
+  address       String?
+  taxId         String?  @map("tax_id")
+  notes         String?
+  active        Boolean  @default(true)
+  version       Int      @default(1)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy     String   @map("created_by") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy     String   @map("updated_by") @db.Uuid
+
+  @@index([active, name])
+  @@map("customer")
+  @@schema("parties")
+}
+
+model Supplier {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  code          String   @unique
+  name          String
+  country       String?
+  isForeign     Boolean  @default(false) @map("is_foreign")
+  contactPerson String?  @map("contact_person")
+  phone         String?
+  email         String?
+  address       String?
+  taxId         String?  @map("tax_id")
+  notes         String?
+  active        Boolean  @default(true)
+  version       Int      @default(1)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy     String   @map("created_by") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy     String   @map("updated_by") @db.Uuid
+
+  @@index([active, name])
+  @@map("supplier")
+  @@schema("parties")
+}

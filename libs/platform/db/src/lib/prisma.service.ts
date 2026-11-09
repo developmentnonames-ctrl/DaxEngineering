@@ -25,6 +25,7 @@ export class PrismaService extends PrismaClient implements OnModuleDestroy {
         connectionString: options.url,
         application_name: options.applicationName,
         max: options.poolMax ?? 10,
+        options: '-c TimeZone=UTC',
       }),
     });
   }

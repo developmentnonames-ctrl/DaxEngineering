@@ -16,7 +16,23 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*.ts"],
-  "references": [],
+  "references": [
+    {
+      "path": "../../platform/db/tsconfig.lib.json"
+    },
+    {
+      "path": "../../platform/core/tsconfig.lib.json"
+    },
+    {
+      "path": "../../platform/contract/tsconfig.lib.json"
+    },
+    {
+      "path": "../contract/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/contracts/tsconfig.lib.json"
+    }
+  ],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",

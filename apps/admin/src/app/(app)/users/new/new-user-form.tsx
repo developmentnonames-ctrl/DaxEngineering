@@ -1,14 +1,8 @@
 'use client';
 
-import {
-  Button,
-  MultiSelect,
-  Paper,
-  Stack,
-  Text,
-  TextInput,
-} from '@mantine/core';
+import { Button, MultiSelect, Stack, Text, TextInput } from '@mantine/core';
 import { startTransition, useActionState } from 'react';
+import { SectionCard } from '@dax/web-shell';
 import { StateAlert } from '../../../../components/state-alert';
 import {
   type ActionState,
@@ -36,7 +30,7 @@ export function NewUserForm({
   const err = (field: string) => fieldError(state, field);
 
   return (
-    <Paper withBorder p="lg">
+    <SectionCard title="Details">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -93,11 +87,16 @@ export function NewUserForm({
             The user gets an email with a link to set their password. The link
             expires in 72 hours.
           </Text>
-          <Button type="submit" loading={pending} disabled={pending}>
+          <Button
+            type="submit"
+            loading={pending}
+            disabled={pending}
+            style={{ alignSelf: 'flex-start' }}
+          >
             Add user
           </Button>
         </Stack>
       </form>
-    </Paper>
+    </SectionCard>
   );
 }

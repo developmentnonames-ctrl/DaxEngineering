@@ -1,10 +1,14 @@
-import { CapabilityProvider } from '@dax/web-shell';
-import {
-  PRODUCT,
-  requireCapabilities,
-  requireReadyUser,
-} from '../../lib/server';
-import { AdminShell } from './admin-shell';
+import { CapabilityProvider, DaxShell } from '@dax/web-shell';
+import { requireCapabilities, requireReadyUser } from '../../lib/server';
+
+const FALLBACK_ICONS: Record<string, string> = {
+  users: 'users',
+  roles: 'key',
+  departments: 'hierarchy',
+  modules: 'puzzle',
+  numbering: 'hash',
+  audit: 'history',
+};
 
 export default async function AppLayout({
   children,
@@ -13,15 +17,25 @@ export default async function AppLayout({
 }) {
   const me = await requireReadyUser();
   const caps = await requireCapabilities();
+  const nav = [
+    { key: 'home', label: 'Home', path: '/', icon: 'home' },
+    ...caps.menu.map(({ key, label, path, icon }) => ({
+      key,
+      label,
+      path,
+      icon: icon ?? FALLBACK_ICONS[key] ?? 'grid',
+    })),
+  ];
   return (
     <CapabilityProvider value={caps}>
-      <AdminShell
-        product={PRODUCT}
+      <DaxShell
+        appLabel="Admin"
         userName={me.user.name}
-        menu={caps.menu.map(({ key, label, path }) => ({ key, label, path }))}
+        userNote={me.user.isSuperAdmin ? 'Super admin' : 'Admin'}
+        nav={nav}
       >
         {children}
-      </AdminShell>
+      </DaxShell>
     </CapabilityProvider>
   );
 }

@@ -23,6 +23,7 @@ model NumberSeries {
   name      String
   pattern   String          @default("{DOC}/{SUB}/{FY}/{SEQ}")
   padding   Int             @default(4)
+  yearly    Boolean         @default(true)
   active    Boolean         @default(true)
   removedAt DateTime?       @map("removed_at") @db.Timestamptz(3)
   updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)

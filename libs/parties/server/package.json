@@ -19,5 +19,14 @@
       "type:server"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "@dax/contracts": "workspace:*",
+    "@dax/parties-contract": "workspace:*",
+    "@dax/platform-contract": "workspace:*",
+    "@dax/platform-core": "workspace:*",
+    "@dax/platform-db": "workspace:*",
+    "@nestjs/common": "^11.2.8",
+    "csv-parse": "7.0.3",
+    "zod": "4.6.7"
+  }
 }

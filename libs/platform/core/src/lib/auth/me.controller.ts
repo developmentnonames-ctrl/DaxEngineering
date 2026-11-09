@@ -57,6 +57,7 @@ export class MeController {
             label: e.label,
             path: e.path,
             moduleKey: m.key,
+            icon: e.icon ?? null,
           })),
       ),
       permissions: Object.fromEntries(

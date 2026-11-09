@@ -1,6 +1,7 @@
 'use client';
 
-import { Alert, Badge, Button, Group, Paper, Stack, Text } from '@mantine/core';
+import { Alert, Button, Group, Paper, Stack, Text } from '@mantine/core';
+import { Pill } from '@dax/web-shell';
 import type { RoleDetail } from '@dax/platform-contract';
 import { startTransition, useActionState, useMemo, useState } from 'react';
 import type { CatalogEntity, CatalogModule } from '../../../../lib/catalog';
@@ -60,7 +61,7 @@ export function GrantsEditor({
   };
 
   return (
-    <Stack gap="xl">
+    <Stack gap="lg">
       <PermissionMatrix
         modules={modules}
         permissions={permissions}
@@ -74,14 +75,7 @@ export function GrantsEditor({
         readOnly={readOnly}
       />
       {readOnly ? null : (
-        <Paper
-          withBorder
-          shadow="sm"
-          p="md"
-          pos="sticky"
-          bottom={0}
-          style={{ zIndex: 2 }}
-        >
+        <Paper shadow="xl" p="md" pos="sticky" bottom={0} style={{ zIndex: 2 }}>
           <Stack gap="xs">
             {state.error ? (
               <Alert color="red">
@@ -102,9 +96,7 @@ export function GrantsEditor({
             ) : null}
             <Group justify="space-between">
               {dirty ? (
-                <Badge color="yellow" variant="light">
-                  Unsaved changes
-                </Badge>
+                <Pill tone="yel">Unsaved changes</Pill>
               ) : state.ok && state.message ? (
                 <Text size="sm" c="green">
                   {state.message}

@@ -1,3 +1,7 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "core";
+CREATE SCHEMA IF NOT EXISTS "audit";
+
 -- CreateEnum
 CREATE TYPE "core"."GrantScope" AS ENUM ('OWN', 'DEPARTMENT', 'ALL');
 

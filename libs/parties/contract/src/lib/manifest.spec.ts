@@ -9,10 +9,12 @@ describe('partiesManifest', () => {
       'parties.customer.create',
       'parties.customer.edit',
       'parties.customer.archive',
+      'parties.customer.import',
       'parties.supplier.view',
       'parties.supplier.create',
       'parties.supplier.edit',
       'parties.supplier.archive',
+      'parties.supplier.import',
     ]);
   });
 });

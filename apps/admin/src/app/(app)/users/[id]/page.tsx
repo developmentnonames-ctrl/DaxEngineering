@@ -1,4 +1,4 @@
-import { Alert, Anchor, Badge, Group, Stack, Text, Title } from '@mantine/core';
+import { Alert } from '@mantine/core';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
 import {
@@ -7,10 +7,17 @@ import {
   EffectiveAccess,
 } from '@dax/platform-contract';
 import { ApiError } from '@dax/web-data-access/server';
-import { canDo, canWriteField } from '@dax/web-shell';
+import {
+  canDo,
+  canWriteField,
+  Empty,
+  Mono,
+  PageHead,
+  Pill,
+} from '@dax/web-shell';
 import { permissionIndex } from '../../../../lib/catalog';
 import { getCatalog, getDepartments, getRoles } from '../../../../lib/data';
-import { STATUS_COLORS, userStatus } from '../../../../lib/format';
+import { STATUS_TONES, userStatus } from '../../../../lib/format';
 import { api, requirePermission } from '../../../../lib/server';
 import { isoToDay } from '../dates';
 import { unlessForbidden } from '../../../../lib/load';
@@ -90,35 +97,30 @@ export default async function UserPage({
     : user.departments;
 
   return (
-    <Stack>
-      <Anchor href="/users" size="sm">
-        Back to users
-      </Anchor>
-      <Group justify="space-between" align="flex-start">
-        <Stack gap={4}>
-          <Group gap="sm">
-            <Title order={2}>{user.name}</Title>
-            <Badge color={STATUS_COLORS[status]}>{status}</Badge>
-            {user.isSuperAdmin ? (
-              <Badge color="red" variant="filled">
-                Super admin
-              </Badge>
-            ) : null}
-          </Group>
-          <Text size="sm" c="dimmed">
-            {user.username ? `@${user.username} · ` : ''}Two-step sign-in{' '}
-            {user.twoFactorEnabled ? 'on' : 'off'}
-          </Text>
-        </Stack>
-        {canDo(caps, 'core.users.lock') ? (
-          <AccountActions
-            userId={user.id}
-            status={status}
-            hasPassword={user.hasPassword}
-            isSelf={caps.user.id === user.id}
-          />
-        ) : null}
-      </Group>
+    <>
+      <PageHead
+        eyebrow="Admin · People"
+        back={{ href: '/users', label: 'Users' }}
+        title={user.name}
+        lede={
+          <span className="dax-chips" style={{ alignItems: 'center' }}>
+            <Pill tone={STATUS_TONES[status]}>{status}</Pill>
+            {user.isSuperAdmin ? <Pill tone="bad">Super admin</Pill> : null}
+            {user.username ? <Mono>@{user.username}</Mono> : null}
+            <span>Two-step sign-in {user.twoFactorEnabled ? 'on' : 'off'}</span>
+          </span>
+        }
+        actions={
+          canDo(caps, 'core.users.lock') ? (
+            <AccountActions
+              userId={user.id}
+              status={status}
+              hasPassword={user.hasPassword}
+              isSelf={caps.user.id === user.id}
+            />
+          ) : null
+        }
+      />
       {query.created ? (
         <Alert color="green">
           User added. They will get an email to set their password.
@@ -184,12 +186,12 @@ export default async function UserPage({
               permissions={permissions}
             />
           ) : (
-            <Text size="sm" c="dimmed">
-              You can't see this user's effective access.
-            </Text>
+            <Empty title="Effective access is hidden">
+              You can&apos;t see this user&apos;s effective access.
+            </Empty>
           )
         }
       />
-    </Stack>
+    </>
   );
 }

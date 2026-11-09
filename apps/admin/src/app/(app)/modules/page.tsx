@@ -1,5 +1,4 @@
-import { Stack, Text, Title } from '@mantine/core';
-import { canDo } from '@dax/web-shell';
+import { canDo, PageHead } from '@dax/web-shell';
 import { getCatalog } from '../../../lib/data';
 import { requirePermission } from '../../../lib/server';
 import { ModuleCard } from './module-card';
@@ -13,12 +12,12 @@ export default async function ModulesPage() {
 
   return (
     <>
-      <Title order={2}>Modules</Title>
-      <Text size="sm" c="dimmed">
-        A module that is off disappears from menus and its permissions stop
-        working. Its data is kept. Modules that others depend on must stay on.
-      </Text>
-      <Stack>
+      <PageHead
+        eyebrow="Admin · Settings"
+        title="Modules"
+        lede="A module that is off disappears from menus and its permissions stop working. Its data is kept. Modules that others depend on must stay on."
+      />
+      <div className="dax-grid2">
         {modules.map((m) => (
           <ModuleCard
             key={m.key}
@@ -34,7 +33,7 @@ export default async function ModulesPage() {
               .map((other) => other.name)}
           />
         ))}
-      </Stack>
+      </div>
     </>
   );
 }

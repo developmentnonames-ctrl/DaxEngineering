@@ -4,14 +4,13 @@ import {
   Button,
   Checkbox,
   Group,
-  Paper,
   SimpleGrid,
   Stack,
   Text,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { startTransition, useActionState, useState } from 'react';
+import { SectionCard } from '@dax/web-shell';
 import { StateAlert } from '../../../../components/state-alert';
 import { type ActionState, IDLE } from '../../../../lib/action-state';
 import { type AccessPayload, saveAccess } from '../actions';
@@ -72,17 +71,13 @@ export function AccessForm({
     );
 
   return (
-    <Stack maw={720}>
+    <Stack maw={760} gap="lg">
       <StateAlert state={state} />
-      <Paper withBorder p="lg">
+      <SectionCard
+        title="Roles"
+        note="A user gets everything their roles allow. Leave the date empty for no expiry."
+      >
         <Stack>
-          <div>
-            <Title order={4}>Roles</Title>
-            <Text size="sm" c="dimmed">
-              A user gets everything their roles allow. Leave the date empty for
-              no expiry.
-            </Text>
-          </div>
           {roles.length === 0 ? (
             <Text size="sm" c="dimmed">
               No roles.
@@ -124,15 +119,12 @@ export function AccessForm({
             );
           })}
         </Stack>
-      </Paper>
-      <Paper withBorder p="lg">
+      </SectionCard>
+      <SectionCard
+        title="Departments"
+        note="Department-wide permissions cover only these departments."
+      >
         <Stack>
-          <div>
-            <Title order={4}>Departments</Title>
-            <Text size="sm" c="dimmed">
-              Department-wide permissions cover only these departments.
-            </Text>
-          </div>
           <Checkbox.Group value={departmentIds} onChange={setDepartmentIds}>
             <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }}>
               {departments.map((d) => (
@@ -146,7 +138,7 @@ export function AccessForm({
             </SimpleGrid>
           </Checkbox.Group>
         </Stack>
-      </Paper>
+      </SectionCard>
       {canEdit ? (
         <Button
           onClick={submit}

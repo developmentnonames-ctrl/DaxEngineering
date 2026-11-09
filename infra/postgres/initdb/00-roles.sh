@@ -17,6 +17,7 @@ ALTER ROLE dax_migrator SET role = 'dax_owner';
 CREATE ROLE dax_app LOGIN PASSWORD :'app_pw';
 ALTER ROLE dax_app SET statement_timeout = '15s';
 ALTER ROLE dax_app SET idle_in_transaction_session_timeout = '30s';
+ALTER ROLE dax_app SET timezone = 'UTC';
 CREATE ROLE dax_backup LOGIN PASSWORD :'backup_pw';
 ALTER ROLE dax_backup SET default_transaction_read_only = on;
 

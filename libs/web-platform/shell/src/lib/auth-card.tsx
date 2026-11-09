@@ -1,6 +1,3 @@
-'use client';
-
-import { Container, Paper, Stack, Text, Title } from '@mantine/core';
 import type { ReactNode } from 'react';
 
 export function AuthCard({
@@ -15,23 +12,17 @@ export function AuthCard({
   children: ReactNode;
 }) {
   return (
-    <Container size={420} py={64}>
-      <Stack gap="xs" mb="lg" align="center">
-        <Text fw={700} c="dimmed" tt="uppercase" size="sm">
-          {product}
-        </Text>
-        <Title order={2} ta="center">
-          {title}
-        </Title>
-        {description ? (
-          <Text c="dimmed" size="sm" ta="center">
-            {description}
-          </Text>
-        ) : null}
-      </Stack>
-      <Paper withBorder shadow="sm" p="lg">
-        {children}
-      </Paper>
-    </Container>
+    <main className="dax-auth">
+      <div className="dax-brand">
+        <b>dax</b>
+        <small>engineering</small>
+      </div>
+      <section className="dax-auth-card">
+        <div className="dax-eyebrow">{product}</div>
+        <h1>{title}</h1>
+        {description ? <p className="dax-lede">{description}</p> : null}
+        <div className="dax-auth-body">{children}</div>
+      </section>
+    </main>
   );
 }

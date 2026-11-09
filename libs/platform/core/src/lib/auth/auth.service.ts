@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   type OnApplicationBootstrap,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { fromNodeHeaders } from 'better-auth/node';
 import { generateRandomString } from 'better-auth/crypto';
@@ -16,6 +17,7 @@ import type { DaxRequest } from './internal-caller';
 import { PrismaLockoutStore } from './lockout';
 import {
   LogMailer,
+  MailError,
   type Mailer,
   type PasswordLinkKind,
   passwordLinkEmail,
@@ -149,9 +151,21 @@ export class AuthService implements OnApplicationBootstrap {
       expiresAt: new Date(Date.now() + INVITE_LINK_HOURS * 3600 * 1000),
     });
     const link = `${this.options.origins[app]}/reset-password?token=${encodeURIComponent(token)}`;
-    await this.mailer.send(
-      passwordLinkEmail(kind, user, link, `${INVITE_LINK_HOURS} hours`),
-    );
+    try {
+      await this.mailer.send(
+        passwordLinkEmail(kind, user, link, `${INVITE_LINK_HOURS} hours`),
+      );
+    } catch (error) {
+      if (!(error instanceof MailError)) throw error;
+      this.logger.error(
+        { status: error.status, reason: error.reason, userId: user.id },
+        'Password email was rejected by Resend',
+      );
+      throw new ServiceUnavailableException({
+        code: 'EMAIL_FAILED',
+        message: `The email could not be sent: ${error.reason}`,
+      });
+    }
   }
 
   async onApplicationBootstrap(): Promise<void> {

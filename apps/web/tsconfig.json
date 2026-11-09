@@ -74,6 +74,15 @@
     },
     {
       "path": "../../libs/platform/contract"
+    },
+    {
+      "path": "../../libs/parties/contract"
+    },
+    {
+      "path": "../../libs/inventory/contract"
+    },
+    {
+      "path": "../../libs/shared/contracts"
     }
   ]
 }

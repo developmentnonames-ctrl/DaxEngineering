@@ -3,14 +3,12 @@ import {
   Autocomplete,
   Button,
   Group,
-  Paper,
   Select,
   SimpleGrid,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { AdminUserList, AuditPage } from '@dax/platform-contract';
-import { canDo } from '@dax/web-shell';
+import { canDo, PageHead, SectionCard } from '@dax/web-shell';
 import { getCatalog } from '../../../lib/data';
 import { unlessForbidden } from '../../../lib/load';
 import { api, requirePermission } from '../../../lib/server';
@@ -59,8 +57,12 @@ export default async function AuditLogPage({
 
   return (
     <>
-      <Title order={2}>Audit log</Title>
-      <Paper withBorder p="md">
+      <PageHead
+        eyebrow="Admin · History"
+        title="Audit log"
+        lede="Every change to users, roles and records: who made it, when, and what changed."
+      />
+      <SectionCard title="Filters">
         <form method="get" action="/audit">
           <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }} spacing="sm">
             <Autocomplete
@@ -111,7 +113,7 @@ export default async function AuditLogPage({
             </Button>
           </Group>
         </form>
-      </Paper>
+      </SectionCard>
       {valid ? null : (
         <Alert color="orange">
           Some filters were not valid and were ignored.

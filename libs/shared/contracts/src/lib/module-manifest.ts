@@ -21,6 +21,7 @@ export interface NumberSeriesDef {
   readonly docType: string;
   readonly name: string;
   readonly subtypes?: Readonly<Record<string, string>>;
+  readonly yearly?: boolean;
 }
 
 export interface MenuEntryDef {
