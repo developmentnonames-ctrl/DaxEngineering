@@ -16,24 +16,25 @@ Three goals drive the design:
 
 ## Decisions
 
-| Area             | Decision                                                                                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Stack            | Nx + pnpm · Next.js 16 (`web`, `admin`) · NestJS 11 (`api`) · Postgres 18 · Prisma 7 · Mantine · Zod 4                                              |
-| Hosting          | Contabo VPS · Dokploy (Traefik TLS) · staging and production stacks · GitHub Actions                                                                |
-| Auth             | Better Auth inside NestJS, login only · sign in with username or email · optional TOTP 2FA, mandatory for super admins · no self sign-up            |
-| Passwords        | 12+ characters, no breach-list check · reset by email link (Resend), every account has an email · 5 failed sign-ins lock the account for 15 minutes |
-| First admin      | Created on first boot from `BOOTSTRAP_ADMIN_*` env vars when no users exist; must change the password and set up 2FA at first sign-in               |
-| API path         | Next.js is the gateway: the browser talks only to Next.js; the API is on a private network                                                          |
-| Authorization    | Own ACM · many roles per user + per-user allow/deny overrides (deny wins) · scope per grant: Own / Department / All (store list ready for later)    |
-| Field visibility | Per-field read/write grants · hidden fields never selected or sent · tiers: Internal / Confidential / Restricted                                    |
-| Super admin      | Sees everything; Restricted reads still audited                                                                                                     |
-| Audit            | All changes with before/after + Restricted reads and exports · append-only                                                                          |
-| Encryption       | App-level AES-256-GCM for Restricted columns                                                                                                        |
-| Modularity       | Modular monolith + module registry (admin enables/disables) · one Postgres schema per module · REST + shared Zod contracts                          |
-| Processes        | Explicit state machines per document + a shared approvals service                                                                                   |
-| Numbering        | Configurable series, April financial year in Colombo time (`26` = Apr 2026 – Mar 2027), gap-free                                                    |
-| Jobs / files     | pg-boss (in Postgres) · Cloudflare R2 private buckets                                                                                               |
-| Stores UX        | Phone camera scanning in a PWA, QR labels                                                                                                           |
+| Area             | Decision                                                                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stack            | Nx + pnpm · Next.js 16 (`web`, `admin`) · NestJS 11 (`api`) · Postgres 18 · Prisma 7 · Mantine · Zod 4                                                                                                  |
+| Hosting          | Contabo VPS · Dokploy (Traefik TLS) · staging and production stacks · GitHub Actions                                                                                                                    |
+| Auth             | Better Auth inside NestJS, login only · sign in with username or email · optional TOTP 2FA, mandatory for super admins · no self sign-up                                                                |
+| Passwords        | 12+ characters, no breach-list check · reset by email link (Resend), every account has an email · 5 failed sign-ins lock the account for 15 minutes                                                     |
+| First admin      | Created on first boot from `BOOTSTRAP_ADMIN_*` env vars when no users exist; must change the password and set up 2FA at first sign-in                                                                   |
+| API path         | Next.js is the gateway: the browser talks only to Next.js; the API is on a private network                                                                                                              |
+| Authorization    | Own ACM · many roles per user + per-user allow/deny overrides (deny wins) · scope per grant: Own / Department / All (store list ready for later)                                                        |
+| Field visibility | Per-field read/write grants · hidden fields never selected or sent · tiers: Internal / Confidential / Restricted                                                                                        |
+| Super admin      | Sees everything; Restricted reads still audited · only super admins assign the Super Admin role or edit super admin accounts                                                                            |
+| Admin access     | Permission-based (`core.admin.access` + `core.*` permissions) · delegated admins hand out only what they hold · user management follows scope (Department = own departments) · 2FA is a per-role switch |
+| Audit            | All changes with before/after + Restricted reads and exports · append-only (DB trigger) · kept forever                                                                                                  |
+| Encryption       | App-level AES-256-GCM for Restricted columns                                                                                                                                                            |
+| Modularity       | Modular monolith + module registry (admin enables/disables) · one Postgres schema per module · REST + shared Zod contracts                                                                              |
+| Processes        | Explicit state machines per document + a shared approvals service                                                                                                                                       |
+| Numbering        | Configurable series, April financial year in Colombo time (`26` = Apr 2026 – Mar 2027), gap-free                                                                                                        |
+| Jobs / files     | Own transactional outbox table + worker process (pg-boss dropped: it creates tables at runtime, which the app role may not) · Cloudflare R2 private buckets                                             |
+| Stores UX        | Phone camera scanning in a PWA, QR labels                                                                                                                                                               |
 
 ## Topology
 
@@ -53,8 +54,7 @@ admin app's token.
 - **Two Better Auth instances** in the API, one per app (`web`, `admin`), sharing the `auth`
   schema. Cookies are host-only and prefixed `dax-web.` / `dax-admin.`. Each session records
   the app that created it, and the API rejects a session used from the other app.
-- **Admin app** sign-in works only for super admins (until the access control milestone adds an
-  admin permission).
+- **Admin app** sign-in needs the `core.admin.access` permission; super admins have it.
 - **Internal tokens:** every API call carries `x-internal-token`; the token decides which app is
   calling. Only `/api/health/*` is open, for container probes.
 - **Next.js auth proxy** (`/api/auth/*` in each app) forwards an allowlist of sign-in, password and
@@ -144,8 +144,8 @@ Typed permission keys such as `'inventory.grn.post'` are derived from it. See
   1. **Ports**: interfaces in a contract lib that join the caller's transaction. Inventory's
      ports cover availability, reserve/release, requestIssue, expectArrival, startMrnFromHold
      and flagReorder.
-  2. **Domain events**: versioned Zod schemas published through pg-boss inside the business
-     transaction. Subscribers are idempotent.
+  2. **Domain events**: versioned Zod schemas written to `core.outbox_event` inside the business
+     transaction; the worker delivers them. Subscribers are idempotent (`core.processed_event`).
   3. **Extension hooks**, e.g. an MRN release gate list that is empty in phase 1 and lets
      Accounts add release clearance later.
   4. **Web extension slots** filled by `apps/web`.
@@ -249,7 +249,7 @@ departments are read-only viewers.
 | --- | -------------------------------------------------------------------------------------------------------------- | ------ |
 | M0  | Workspace, boundaries, Prisma layout, DB roles, logging, health, Docker, CI                                    | done   |
 | M1  | Better Auth in NestJS, Next auth proxy, login/2FA screens, internal tokens                                     | built  |
-| M2  | Registry, ACM, policy cache, visibility layer, audit, crypto, numbering, approvals, files, events, admin panel | next   |
+| M2  | Registry, ACM, policy cache, visibility layer, audit, crypto, numbering, approvals, files, events, admin panel | built  |
 | M3  | Parties, items, bins, QR labels, stock views, scanner, PWA                                                     |        |
 | M4  | Stock engine, receiving, GRN, put-away                                                                         |        |
 | M5  | MRN, AOD, holds                                                                                                |        |

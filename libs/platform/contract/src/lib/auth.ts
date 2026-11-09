@@ -36,28 +36,3 @@ export const MeResponse = z.object({
   pending: PendingStep.nullable(),
 });
 export type MeResponse = z.infer<typeof MeResponse>;
-
-export const AdminUser = z.object({
-  id: z.string(),
-  name: z.string(),
-  username: z.string().nullable(),
-  email: z.string(),
-  isSuperAdmin: z.boolean(),
-  active: z.boolean(),
-  twoFactorEnabled: z.boolean(),
-  lockedUntil: z.string().nullable(),
-  hasPassword: z.boolean(),
-  createdAt: z.string(),
-});
-export type AdminUser = z.infer<typeof AdminUser>;
-
-export const AdminUserList = z.object({ users: z.array(AdminUser) });
-export type AdminUserList = z.infer<typeof AdminUserList>;
-
-export const CreateUserInput = z.strictObject({
-  name: z.string().trim().min(1).max(100),
-  username: Username,
-  email: z.email().max(254),
-  isSuperAdmin: z.boolean().default(false),
-});
-export type CreateUserInput = z.infer<typeof CreateUserInput>;

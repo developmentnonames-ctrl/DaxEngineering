@@ -1,35 +1,56 @@
 'use client';
 
 import {
-  Alert,
   Button,
-  Checkbox,
+  MultiSelect,
   Paper,
   Stack,
   Text,
   TextInput,
 } from '@mantine/core';
-import { useActionState } from 'react';
-import { type CreateUserState, createUser } from '../actions';
+import { startTransition, useActionState } from 'react';
+import { StateAlert } from '../../../../components/state-alert';
+import {
+  type ActionState,
+  fieldError,
+  IDLE,
+} from '../../../../lib/action-state';
+import { createUser } from '../actions';
 
-export function NewUserForm() {
-  const [state, action, pending] = useActionState<CreateUserState, FormData>(
+interface Option {
+  value: string;
+  label: string;
+}
+
+export function NewUserForm({
+  roles,
+  departments,
+}: {
+  roles: Option[];
+  departments: Option[];
+}) {
+  const [state, action, pending] = useActionState<ActionState, FormData>(
     createUser,
-    {},
+    IDLE,
   );
-  const bad = (field: string) =>
-    state.fields?.includes(field) ? 'Check this field' : undefined;
+  const err = (field: string) => fieldError(state, field);
 
   return (
     <Paper withBorder p="lg">
-      <form action={action}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const data = new FormData(e.currentTarget);
+          startTransition(() => action(data));
+        }}
+      >
         <Stack>
-          {state.error ? <Alert color="red">{state.error}</Alert> : null}
+          <StateAlert state={state} />
           <TextInput
             name="name"
             label="Full name"
             required
-            error={bad('name')}
+            error={err('name')}
           />
           <TextInput
             name="username"
@@ -38,7 +59,7 @@ export function NewUserForm() {
             autoCapitalize="none"
             spellCheck={false}
             required
-            error={bad('username')}
+            error={err('username')}
           />
           <TextInput
             name="email"
@@ -46,18 +67,33 @@ export function NewUserForm() {
             label="Email"
             description="Used to set and reset the password."
             required
-            error={bad('email')}
+            error={err('email')}
           />
-          <Checkbox
-            name="isSuperAdmin"
-            label="Super admin"
-            description="Full access to everything, including this panel. Keep to very few people."
+          <MultiSelect
+            name="departmentIds"
+            label="Departments"
+            description="Department-wide access covers these departments."
+            data={departments}
+            searchable
+            clearable
+            error={err('departmentIds')}
           />
+          {roles.length ? (
+            <MultiSelect
+              name="roleIds"
+              label="Roles"
+              description="You can add expiry dates after the user is added."
+              data={roles}
+              searchable
+              clearable
+              error={err('roleIds')}
+            />
+          ) : null}
           <Text size="sm" c="dimmed">
             The user gets an email with a link to set their password. The link
             expires in 72 hours.
           </Text>
-          <Button type="submit" loading={pending}>
+          <Button type="submit" loading={pending} disabled={pending}>
             Add user
           </Button>
         </Stack>

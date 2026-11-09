@@ -1,6 +1,10 @@
-import { Anchor, Container, Group, Stack, Text } from '@mantine/core';
-import { SignOutButton } from '@dax/web-shell';
-import { PRODUCT, requireReadyUser } from '../../lib/server';
+import { CapabilityProvider } from '@dax/web-shell';
+import {
+  PRODUCT,
+  requireCapabilities,
+  requireReadyUser,
+} from '../../lib/server';
+import { AdminShell } from './admin-shell';
 
 export default async function AppLayout({
   children,
@@ -8,24 +12,16 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const me = await requireReadyUser();
+  const caps = await requireCapabilities();
   return (
-    <Container size="lg" py="md">
-      <Stack gap="lg">
-        <Group justify="space-between">
-          <Group gap="lg">
-            <Text fw={700}>{PRODUCT}</Text>
-            <Anchor href="/users">Users</Anchor>
-            <Anchor href="/account/security">My security</Anchor>
-          </Group>
-          <Group gap="sm">
-            <Text size="sm" c="dimmed">
-              {me.user.name}
-            </Text>
-            <SignOutButton />
-          </Group>
-        </Group>
+    <CapabilityProvider value={caps}>
+      <AdminShell
+        product={PRODUCT}
+        userName={me.user.name}
+        menu={caps.menu.map(({ key, label, path }) => ({ key, label, path }))}
+      >
         {children}
-      </Stack>
-    </Container>
+      </AdminShell>
+    </CapabilityProvider>
   );
 }

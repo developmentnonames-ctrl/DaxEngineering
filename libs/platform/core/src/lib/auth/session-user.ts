@@ -11,8 +11,13 @@ export interface SessionUser {
   mustChangePassword?: boolean | null;
 }
 
-export function pendingStep(user: SessionUser): PendingStep | null {
+export function pendingStep(
+  user: SessionUser,
+  require2fa: boolean,
+): PendingStep | null {
   if (user.mustChangePassword) return 'change_password';
-  if (user.isSuperAdmin && !user.twoFactorEnabled) return 'setup_2fa';
+  if ((require2fa || user.isSuperAdmin) && !user.twoFactorEnabled) {
+    return 'setup_2fa';
+  }
   return null;
 }

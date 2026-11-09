@@ -1,0 +1,25 @@
+model AuditLog {
+  id            String   @default(uuid(7)) @db.Uuid
+  occurredAt    DateTime @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  actorId       String?  @map("actor_id") @db.Uuid
+  actorName     String?  @map("actor_name")
+  app           String?
+  requestId     String?  @map("request_id")
+  ip            String?
+  moduleKey     String   @map("module_key")
+  entityKey     String   @map("entity_key")
+  entityId      String?  @map("entity_id")
+  action        String
+  before        Json?
+  after         Json?
+  changedFields String[] @map("changed_fields")
+  reason        String?
+  restricted    Boolean  @default(false)
+
+  @@id([id, occurredAt])
+  @@index([entityKey, entityId, occurredAt])
+  @@index([actorId, occurredAt])
+  @@index([occurredAt])
+  @@map("audit_log")
+  @@schema("audit")
+}

@@ -1,11 +1,16 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import {
   type AuthOptions,
-  AuthModule,
   createLoggerModule,
+  PlatformModule,
 } from '@dax/platform-core';
 import { DatabaseModule } from '@dax/platform-db';
 import type { Env } from '../env';
+import {
+  INSTALLED_MODULES,
+  MODULE_ENTITIES,
+  MODULE_SERVERS,
+} from '../module-catalog';
 import { HealthController } from './health/health.controller';
 
 export const QUIET_PATHS = ['/api/health/live', '/api/health/ready'];
@@ -40,7 +45,7 @@ export function authOptions(env: Env): AuthOptions {
 
 @Module({})
 export class AppModule {
-  static forRoot(env: Env): DynamicModule {
+  static forRoot(env: Env, enabled: ReadonlySet<string>): DynamicModule {
     return {
       module: AppModule,
       imports: [
@@ -53,7 +58,30 @@ export class AppModule {
           url: env.DATABASE_URL,
           applicationName: 'dax-api',
         }),
-        AuthModule.forRoot(authOptions(env)),
+        PlatformModule.forRoot({
+          auth: authOptions(env),
+          catalog: { modules: INSTALLED_MODULES, entities: MODULE_ENTITIES },
+          files:
+            env.S3_ENDPOINT &&
+            env.S3_BUCKET &&
+            env.S3_ACCESS_KEY_ID &&
+            env.S3_SECRET_ACCESS_KEY
+              ? {
+                  endpoint: env.S3_ENDPOINT,
+                  bucket: env.S3_BUCKET,
+                  accessKeyId: env.S3_ACCESS_KEY_ID,
+                  secretAccessKey: env.S3_SECRET_ACCESS_KEY,
+                  region: env.S3_REGION,
+                }
+              : undefined,
+          crypto: {
+            keys: env.DATA_ENCRYPTION_KEYS,
+            activeKey: env.DATA_ENCRYPTION_ACTIVE_KEY,
+          },
+        }),
+        ...Object.entries(MODULE_SERVERS)
+          .filter(([key]) => enabled.has(key))
+          .map(([, server]) => server),
       ],
       controllers: [HealthController],
     };

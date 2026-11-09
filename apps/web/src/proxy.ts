@@ -20,7 +20,8 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source: '/((?!_next/static|_next/image|favicon.ico|healthz).*)',
+      // Uploads skip the proxy, which would buffer the body and cut it at 10 MB.
+      source: '/((?!_next/static|_next/image|favicon.ico|healthz|api/files).*)',
       missing: [{ type: 'header', key: 'next-router-prefetch' }],
     },
   ],

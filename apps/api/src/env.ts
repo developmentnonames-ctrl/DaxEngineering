@@ -34,6 +34,13 @@ const EnvSchema = z
     INTERNAL_TOKEN_ADMIN: Secret,
     WEB_ORIGIN: Origin,
     ADMIN_ORIGIN: Origin,
+    S3_ENDPOINT: blankAsUnset(z.url()),
+    S3_BUCKET: blankAsUnset(z.string().min(3).max(63)),
+    S3_ACCESS_KEY_ID: blankAsUnset(z.string().min(1)),
+    S3_SECRET_ACCESS_KEY: blankAsUnset(z.string().min(1)),
+    S3_REGION: z.string().min(1).default('auto'),
+    DATA_ENCRYPTION_KEYS: z.string().min(10),
+    DATA_ENCRYPTION_ACTIVE_KEY: z.string().regex(/^[a-z0-9]{1,16}$/),
     RESEND_API_KEY: blankAsUnset(z.string().min(1)),
     MAIL_FROM: blankAsUnset(z.string().min(3)),
     BOOTSTRAP_ADMIN_NAME: blankAsUnset(z.string().trim().min(1)),
@@ -66,6 +73,36 @@ const EnvSchema = z
             message: 'Must be https in production',
           });
       }
+    }
+    const s3 = [
+      'S3_ENDPOINT',
+      'S3_BUCKET',
+      'S3_ACCESS_KEY_ID',
+      'S3_SECRET_ACCESS_KEY',
+    ] as const;
+    const s3Set = s3.filter((k) => env[k] !== undefined);
+    if (
+      (s3Set.length > 0 || env.NODE_ENV === 'production') &&
+      s3Set.length < s3.length
+    ) {
+      for (const key of s3.filter((k) => env[k] === undefined)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [key],
+          message: 'Set all S3_* variables',
+        });
+      }
+    }
+    if (
+      env.NODE_ENV === 'production' &&
+      env.S3_ENDPOINT &&
+      !env.S3_ENDPOINT.startsWith('https://')
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['S3_ENDPOINT'],
+        message: 'Must be https in production',
+      });
     }
     if (env.RESEND_API_KEY && !env.MAIL_FROM) {
       ctx.addIssue({

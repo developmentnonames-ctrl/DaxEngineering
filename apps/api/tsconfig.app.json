@@ -45,7 +45,13 @@
       "path": "../../libs/platform/contract/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/parties/server/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/parties/contract/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/inventory/server/tsconfig.lib.json"
     },
     {
       "path": "../../libs/inventory/contract/tsconfig.lib.json"

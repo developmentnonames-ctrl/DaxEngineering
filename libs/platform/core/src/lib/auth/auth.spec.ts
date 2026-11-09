@@ -11,7 +11,17 @@ import {
 } from './internal-caller';
 import { isLocked, signInIdentifier } from './lockout';
 import { passwordLinkEmail, ResendMailer } from './mailer';
-import { AdminOnly, AllowPending, Public, SessionGuard } from './session.guard';
+import type { Policy } from '../acm/policy';
+import type { PolicyService } from '../acm/policy.service';
+import type { RequestContext } from '../context/request-context';
+import {
+  AllowPending,
+  AppOnly,
+  Authenticated,
+  Public,
+  Requires,
+  SessionGuard,
+} from './session.guard';
 import { pendingStep, type SessionUser } from './session-user';
 
 const TOKENS = { web: 'w'.repeat(40), admin: 'a'.repeat(40) };
@@ -79,15 +89,13 @@ describe('internal caller', () => {
 
 describe('pendingStep', () => {
   const base: SessionUser = { id: '1', name: 'A', email: 'a@b.co' };
-  it('asks for a password change first, then 2FA for super admins', () => {
-    expect(
-      pendingStep({ ...base, mustChangePassword: true, isSuperAdmin: true }),
-    ).toBe('change_password');
-    expect(pendingStep({ ...base, isSuperAdmin: true })).toBe('setup_2fa');
-    expect(
-      pendingStep({ ...base, isSuperAdmin: true, twoFactorEnabled: true }),
-    ).toBeNull();
-    expect(pendingStep(base)).toBeNull();
+  it('asks for a password change first, then 2FA when a role requires it', () => {
+    expect(pendingStep({ ...base, mustChangePassword: true }, true)).toBe(
+      'change_password',
+    );
+    expect(pendingStep(base, true)).toBe('setup_2fa');
+    expect(pendingStep({ ...base, twoFactorEnabled: true }, true)).toBeNull();
+    expect(pendingStep(base, false)).toBeNull();
   });
 });
 
@@ -99,19 +107,58 @@ describe('SessionGuard', () => {
     plain() {
       return;
     }
-    @AllowPending() me() {
+    @Authenticated() signedIn() {
       return;
     }
-    @AdminOnly() admin() {
+    @Authenticated() @AllowPending() me() {
+      return;
+    }
+    @Requires('core.users.view') users() {
+      return;
+    }
+    @Requires('core.users.view') @AppOnly('admin') adminUsers() {
       return;
     }
   }
 
-  function guardFor(session: Awaited<ReturnType<AuthService['getSession']>>) {
+  const user: SessionUser = {
+    id: 'u1',
+    name: 'A',
+    email: 'a@b.co',
+    active: true,
+  };
+
+  function policy(permissions: string[], require2fa = false): Policy {
+    return {
+      userId: 'u1',
+      isSuperAdmin: false,
+      require2fa,
+      departmentIds: [],
+      roleIds: [],
+      enabledModules: new Set(['core']),
+      permissions: new Map(
+        permissions.map((p) => [p, { scope: 'ALL', storeIds: [] }]),
+      ),
+      sources: new Map(),
+      denied: new Set(),
+      fields: new Map(),
+      validUntil: Date.now() + 60_000,
+      version: '1.1',
+    };
+  }
+
+  function guardFor(
+    session: Awaited<ReturnType<AuthService['getSession']>>,
+    p: Policy = policy([]),
+  ) {
     const auth = {
       getSession: vi.fn(async () => session),
     } as unknown as AuthService;
-    return new SessionGuard(new Reflector(), auth);
+    const policies = {
+      forUser: vi.fn(async () => p),
+    } as unknown as PolicyService;
+    const context = { set: vi.fn() } as unknown as RequestContext;
+    return new SessionGuard(new Reflector(), auth, policies, context);
   }
 
   function ctx(handler: keyof Routes, app: 'web' | 'admin' = 'web') {
@@ -126,12 +173,6 @@ describe('SessionGuard', () => {
     };
   }
 
-  const user: SessionUser = {
-    id: 'u1',
-    name: 'A',
-    email: 'a@b.co',
-    active: true,
-  };
   const session = (u: Partial<SessionUser> = {}, app = 'web') => ({
     sessionId: 's1',
     app,
@@ -144,43 +185,65 @@ describe('SessionGuard', () => {
     ).resolves.toBe(true);
   });
 
-  it('denies by default when there is no session', async () => {
+  it('denies routes that declare no access rule, even with a session', async () => {
     await expect(
-      guardFor(null).canActivate(ctx('plain').context),
+      guardFor(session()).canActivate(ctx('plain').context),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('requires a session', async () => {
+    await expect(
+      guardFor(null).canActivate(ctx('signedIn').context),
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
-  it('rejects a session created by the other app', async () => {
-    const { context } = ctx('plain', 'admin');
+  it('rejects a session created by the other app and deactivated users', async () => {
     await expect(
-      guardFor(session({ isSuperAdmin: true }, 'web')).canActivate(context),
+      guardFor(session({}, 'web')).canActivate(
+        ctx('signedIn', 'admin').context,
+      ),
     ).rejects.toBeInstanceOf(UnauthorizedException);
-  });
-
-  it('rejects deactivated users', async () => {
     await expect(
-      guardFor(session({ active: false })).canActivate(ctx('plain').context),
+      guardFor(session({ active: false })).canActivate(ctx('signedIn').context),
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('holds users with pending setup on the setup routes', async () => {
     const pending = session({ mustChangePassword: true });
     await expect(
-      guardFor(pending).canActivate(ctx('plain').context),
+      guardFor(pending).canActivate(ctx('signedIn').context),
     ).rejects.toBeInstanceOf(ForbiddenException);
     const { context, req } = ctx('me');
     await expect(guardFor(pending).canActivate(context)).resolves.toBe(true);
-    expect(req.auth?.user.id).toBe('u1');
+    expect(req.policy?.userId).toBe('u1');
   });
 
-  it('keeps admin routes to super admins on the admin app', async () => {
+  it('enforces the required permission', async () => {
     await expect(
-      guardFor(session()).canActivate(ctx('admin', 'web').context),
+      guardFor(session()).canActivate(ctx('users').context),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(
+      guardFor(session(), policy(['core.users.view'])).canActivate(
+        ctx('users').context,
+      ),
+    ).resolves.toBe(true);
+  });
+
+  it('keeps admin routes to the admin app and to holders of admin access', async () => {
+    const p = policy(['core.users.view']);
+    await expect(
+      guardFor(session(), p).canActivate(ctx('adminUsers', 'web').context),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(
+      guardFor(session({}, 'admin'), p).canActivate(
+        ctx('adminUsers', 'admin').context,
+      ),
     ).rejects.toBeInstanceOf(ForbiddenException);
     await expect(
       guardFor(
-        session({ isSuperAdmin: true, twoFactorEnabled: true }, 'admin'),
-      ).canActivate(ctx('admin', 'admin').context),
+        session({}, 'admin'),
+        policy(['core.users.view', 'core.admin.access']),
+      ).canActivate(ctx('adminUsers', 'admin').context),
     ).resolves.toBe(true);
   });
 });

@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 import type { AppName } from '@dax/platform-contract';
+import type { Policy } from '../acm/policy';
 import type { SessionUser } from './session-user';
 
 export interface DaxRequest extends Request {
@@ -9,6 +10,7 @@ export interface DaxRequest extends Request {
     sessionId: string;
     user: SessionUser;
   };
+  policy?: Policy;
 }
 
 export const INTERNAL_TOKEN_HEADER = 'x-internal-token';

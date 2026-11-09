@@ -35,6 +35,10 @@ export interface AuthDeps {
   mailer: Mailer;
   lockout: LockoutStore;
   events: AuthEvents;
+  access: {
+    adminAllowed(userId: string): Promise<boolean>;
+    twoFactorRequired(userId: string): Promise<boolean>;
+  };
 }
 
 export function cookiePrefix(app: AppName): string {
@@ -166,7 +170,7 @@ export function createAuth(d: AuthDeps) {
           before: async (session) => {
             const user = await d.prisma.user.findUnique({
               where: { id: session.userId },
-              select: { active: true, isSuperAdmin: true },
+              select: { active: true },
             });
             if (!user?.active) {
               throw new APIError('FORBIDDEN', {
@@ -174,7 +178,10 @@ export function createAuth(d: AuthDeps) {
                 message: 'This account is disabled.',
               });
             }
-            if (d.app === 'admin' && !user.isSuperAdmin) {
+            if (
+              d.app === 'admin' &&
+              !(await d.access.adminAllowed(session.userId))
+            ) {
               throw new APIError('FORBIDDEN', {
                 code: 'NO_ADMIN_ACCESS',
                 message: "This account can't use the admin panel.",
@@ -202,10 +209,10 @@ export function createAuth(d: AuthDeps) {
         }
         if (ctx.path === '/two-factor/disable') {
           const current = await getSessionFromCtx(ctx);
-          if (current?.user.isSuperAdmin) {
+          if (current && (await d.access.twoFactorRequired(current.user.id))) {
             throw new APIError('FORBIDDEN', {
               code: 'TWO_FACTOR_REQUIRED',
-              message: 'Super admins must keep two-step sign-in on.',
+              message: 'Your role requires two-step sign-in.',
             });
           }
         }
