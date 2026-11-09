@@ -17,6 +17,10 @@ model User {
   sessions           Session[]
   accounts           Account[]
   twoFactors         TwoFactor[]
+  roles              UserRole[]
+  departments        UserDepartment[]
+  overrides          UserPermissionOverride[]
+  profile            UserProfile?
 
   @@map("user")
   @@schema("auth")

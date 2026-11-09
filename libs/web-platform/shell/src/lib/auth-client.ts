@@ -16,7 +16,7 @@ const MESSAGES: Record<string, string> = {
   INVALID_TOKEN: 'This link has expired or was already used.',
   INVALID_PASSWORD: 'Your current password is not right.',
   PASSWORD_TOO_SHORT: 'Use at least 12 characters.',
-  TWO_FACTOR_REQUIRED: 'Super admins must keep two-step sign-in on.',
+  TWO_FACTOR_REQUIRED: 'Your role requires two-step sign-in.',
 };
 
 export function authErrorMessage(

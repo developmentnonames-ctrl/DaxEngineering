@@ -8,6 +8,9 @@ import { fromNodeHeaders } from 'better-auth/node';
 import { generateRandomString } from 'better-auth/crypto';
 import { APP_NAMES, type AppName } from '@dax/platform-contract';
 import { PrismaService } from '@dax/platform-db';
+import { can } from '../acm/policy';
+import { PolicyService } from '../acm/policy.service';
+import { AuditService } from '../audit/audit.service';
 import { createAuth, type DaxAuth } from './auth.factory';
 import type { DaxRequest } from './internal-caller';
 import { PrismaLockoutStore } from './lockout';
@@ -48,16 +51,22 @@ export class AuthService implements OnApplicationBootstrap {
   constructor(
     @Inject(AUTH_OPTIONS) private readonly options: AuthOptions,
     private readonly prisma: PrismaService,
+    private readonly policies: PolicyService,
+    private readonly audit: AuditService,
   ) {
     this.mailer = options.resend
       ? new ResendMailer(options.resend.apiKey, options.resend.from)
       : new LogMailer((fields, message) => this.logger.warn(fields, message));
     const lockout = new PrismaLockoutStore(prisma);
     const events = {
-      info: (fields: object, message: string) =>
-        this.logger.log(fields, message),
-      warn: (fields: object, message: string) =>
-        this.logger.warn(fields, message),
+      info: (fields: object, message: string) => {
+        this.logger.log(fields, message);
+        void this.auditEvent(fields);
+      },
+      warn: (fields: object, message: string) => {
+        this.logger.warn(fields, message);
+        void this.auditEvent(fields);
+      },
     };
     this.instances = Object.fromEntries(
       APP_NAMES.map((app) => [
@@ -72,9 +81,40 @@ export class AuthService implements OnApplicationBootstrap {
           mailer: this.mailer,
           lockout,
           events,
+          access: {
+            adminAllowed: async (userId) =>
+              can(await this.policies.forUser(userId), 'core.admin.access'),
+            twoFactorRequired: async (userId) =>
+              (await this.policies.forUser(userId)).require2fa,
+          },
         }),
       ]),
     ) as Record<AppName, DaxAuth>;
+  }
+
+  private async auditEvent(fields: object): Promise<void> {
+    const f = fields as { event?: string; userId?: string; app?: AppName };
+    if (!f.event) return;
+    try {
+      await this.audit.record(
+        {
+          moduleKey: 'core',
+          entityKey: 'core.user',
+          entityId: f.userId ?? null,
+          action: f.event,
+        },
+        undefined,
+        {
+          app: f.app,
+          actor: f.userId ? { id: f.userId, name: '' } : undefined,
+        },
+      );
+    } catch (error) {
+      this.logger.error(
+        { err: error instanceof Error ? error.message : String(error) },
+        'Could not write auth audit entry',
+      );
+    }
   }
 
   async getSession(
@@ -145,6 +185,13 @@ export class AuthService implements OnApplicationBootstrap {
             accountId: user.id,
             password: hash,
           },
+        });
+        const role = await tx.role.findUniqueOrThrow({
+          where: { key: 'super_admin' },
+          select: { id: true },
+        });
+        await tx.userRole.create({
+          data: { userId: user.id, roleId: role.id },
         });
       });
     } catch (error) {

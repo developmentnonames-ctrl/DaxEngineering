@@ -1,7 +1,10 @@
-import { Paper, Stack, Text, Title } from '@mantine/core';
+import { Badge, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { ChangePasswordForm } from '@dax/web-shell';
+import { requireReadyUser } from '../../../../lib/server';
 
-export default function SecurityPage() {
+export default async function SecurityPage() {
+  const me = await requireReadyUser();
+  const on = me.user.twoFactorEnabled;
   return (
     <Stack maw={480}>
       <Title order={2}>My security</Title>
@@ -13,10 +16,14 @@ export default function SecurityPage() {
       </Paper>
       <Paper withBorder p="lg">
         <Stack>
-          <Title order={4}>Two-step sign-in</Title>
+          <Group justify="space-between">
+            <Title order={4}>Two-step sign-in</Title>
+            <Badge color={on ? 'green' : 'gray'}>{on ? 'On' : 'Off'}</Badge>
+          </Group>
           <Text size="sm">
-            On. Administrator accounts always need a code from the authenticator
-            app.
+            {on
+              ? 'You enter a code from your authenticator app each time you sign in.'
+              : 'Your roles do not require a code from an authenticator app.'}
           </Text>
         </Stack>
       </Paper>

@@ -5,11 +5,12 @@ import { Logger } from 'nestjs-pino';
 import { mountAuth } from '@dax/platform-core';
 import { AppModule, authOptions, QUIET_PATHS } from './app/app.module';
 import { loadEnv } from './env';
-import { INSTALLED_MODULES } from './module-catalog';
+import { loadEnabledModules } from './module-catalog';
 
 async function bootstrap(): Promise<void> {
   const env = loadEnv();
-  const app = await NestFactory.create(AppModule.forRoot(env), {
+  const enabled = await loadEnabledModules(env.DATABASE_URL);
+  const app = await NestFactory.create(AppModule.forRoot(env, enabled), {
     bufferLogs: true,
     bodyParser: false,
   });
@@ -28,7 +29,7 @@ async function bootstrap(): Promise<void> {
 
   await app.listen(env.API_PORT, env.API_HOST);
   logger.log(
-    `API listening on ${env.API_HOST}:${env.API_PORT}. Installed modules: ${INSTALLED_MODULES.map((m) => m.key).join(', ')}`,
+    `API listening on ${env.API_HOST}:${env.API_PORT}. Enabled modules: ${[...enabled].join(', ')}`,
     'Bootstrap',
   );
 

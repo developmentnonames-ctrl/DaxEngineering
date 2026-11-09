@@ -1,0 +1,238 @@
+enum GrantScope {
+  OWN
+  DEPARTMENT
+  ALL
+
+  @@schema("core")
+}
+
+enum FieldTier {
+  INTERNAL
+  CONFIDENTIAL
+  RESTRICTED
+
+  @@schema("core")
+}
+
+enum OverrideEffect {
+  GRANT
+  DENY
+
+  @@schema("core")
+}
+
+model Module {
+  key          String       @id
+  name         String
+  description  String?
+  enabled      Boolean      @default(false)
+  toggleable   Boolean      @default(true)
+  dependsOn    String[]     @map("depends_on")
+  removedAt    DateTime?    @map("removed_at") @db.Timestamptz(3)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  features     Feature[]
+  permissions  Permission[]
+  entities     Entity[]
+
+  @@map("module")
+  @@schema("core")
+}
+
+model Feature {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  moduleKey   String    @map("module_key")
+  module      Module    @relation(fields: [moduleKey], references: [key])
+  key         String
+  name        String
+  description String?
+  removedAt   DateTime? @map("removed_at") @db.Timestamptz(3)
+
+  @@unique([moduleKey, key])
+  @@map("feature")
+  @@schema("core")
+}
+
+model Permission {
+  key         String                   @id
+  moduleKey   String                   @map("module_key")
+  module      Module                   @relation(fields: [moduleKey], references: [key])
+  featureKey  String                   @map("feature_key")
+  action      String
+  label       String
+  description String?
+  scopes      GrantScope[]
+  isApproval  Boolean                  @default(false) @map("is_approval")
+  removedAt   DateTime?                @map("removed_at") @db.Timestamptz(3)
+  createdAt   DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  roleGrants  RolePermission[]
+  overrides   UserPermissionOverride[]
+
+  @@index([moduleKey])
+  @@map("permission")
+  @@schema("core")
+}
+
+model Entity {
+  key       String  @id
+  moduleKey String  @map("module_key")
+  module    Module  @relation(fields: [moduleKey], references: [key])
+  label     String
+  tableName String  @map("table_name")
+  fields    Field[]
+
+  @@map("entity")
+  @@schema("core")
+}
+
+model Field {
+  id         String           @id @default(uuid(7)) @db.Uuid
+  entityKey  String           @map("entity_key")
+  entity     Entity           @relation(fields: [entityKey], references: [key])
+  name       String
+  column     String
+  label      String
+  tier       FieldTier
+  encrypted  Boolean          @default(false)
+  locked     Boolean          @default(false)
+  writable   Boolean          @default(false)
+  group      String?
+  filterable Boolean          @default(false)
+  sortable   Boolean          @default(false)
+  removedAt  DateTime?        @map("removed_at") @db.Timestamptz(3)
+  grants     RoleFieldGrant[]
+
+  @@unique([entityKey, name])
+  @@map("field")
+  @@schema("core")
+}
+
+model Department {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  key       String           @unique
+  name      String
+  active    Boolean          @default(true)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  members   UserDepartment[]
+
+  @@map("department")
+  @@schema("core")
+}
+
+model Role {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  key          String?          @unique
+  name         String           @unique
+  description  String?
+  isSystem     Boolean          @default(false) @map("is_system")
+  isSuperAdmin Boolean          @default(false) @map("is_super_admin")
+  require2fa   Boolean          @default(false) @map("require_2fa")
+  archivedAt   DateTime?        @map("archived_at") @db.Timestamptz(3)
+  version      Int              @default(1)
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  permissions  RolePermission[]
+  fieldGrants  RoleFieldGrant[]
+  users        UserRole[]
+
+  @@map("role")
+  @@schema("core")
+}
+
+model RolePermission {
+  roleId        String     @map("role_id") @db.Uuid
+  role          Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionKey String     @map("permission_key")
+  permission    Permission @relation(fields: [permissionKey], references: [key])
+  scope         GrantScope
+  storeIds      String[]   @map("store_ids") @db.Uuid
+
+  @@id([roleId, permissionKey])
+  @@map("role_permission")
+  @@schema("core")
+}
+
+model RoleFieldGrant {
+  roleId   String  @map("role_id") @db.Uuid
+  role     Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  fieldId  String  @map("field_id") @db.Uuid
+  field    Field   @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  canRead  Boolean @map("can_read")
+  canWrite Boolean @map("can_write")
+
+  @@id([roleId, fieldId])
+  @@map("role_field_grant")
+  @@schema("core")
+}
+
+model UserRole {
+  userId    String    @map("user_id") @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId    String    @map("role_id") @db.Uuid
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz(3)
+  grantedBy String?   @map("granted_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_role")
+  @@schema("core")
+}
+
+model UserDepartment {
+  userId       String     @map("user_id") @db.Uuid
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentId String     @map("department_id") @db.Uuid
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  @@id([userId, departmentId])
+  @@index([departmentId])
+  @@map("user_department")
+  @@schema("core")
+}
+
+model UserPermissionOverride {
+  id            String         @id @default(uuid(7)) @db.Uuid
+  userId        String         @map("user_id") @db.Uuid
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permissionKey String         @map("permission_key")
+  permission    Permission     @relation(fields: [permissionKey], references: [key])
+  effect        OverrideEffect
+  scope         GrantScope?
+  reason        String
+  expiresAt     DateTime?      @map("expires_at") @db.Timestamptz(3)
+  createdBy     String?        @map("created_by") @db.Uuid
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([userId, permissionKey])
+  @@map("user_permission_override")
+  @@schema("core")
+}
+
+model UserProfile {
+  userId      String @id @map("user_id") @db.Uuid
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permVersion Int    @default(1) @map("perm_version")
+
+  @@map("user_profile")
+  @@schema("core")
+}
+
+model PolicyEpoch {
+  id    Int @id @default(1)
+  value Int @default(1)
+
+  @@map("policy_epoch")
+  @@schema("core")
+}
+
+model RegistryState {
+  id           Int      @id @default(1)
+  catalogHash  String   @map("catalog_hash")
+  syncedAt     DateTime @map("synced_at") @db.Timestamptz(3)
+
+  @@map("registry_state")
+  @@schema("core")
+}

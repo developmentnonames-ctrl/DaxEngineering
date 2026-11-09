@@ -1,0 +1,138 @@
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+
+  @@schema("core")
+}
+
+enum OutboxStatus {
+  PENDING
+  DONE
+  FAILED
+
+  @@schema("core")
+}
+
+model NumberSeries {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  moduleKey String          @map("module_key")
+  docType   String          @map("doc_type")
+  subtype   String          @default("")
+  name      String
+  pattern   String          @default("{DOC}/{SUB}/{FY}/{SEQ}")
+  padding   Int             @default(4)
+  active    Boolean         @default(true)
+  removedAt DateTime?       @map("removed_at") @db.Timestamptz(3)
+  updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  counters  NumberCounter[]
+
+  @@unique([docType, subtype])
+  @@map("number_series")
+  @@schema("core")
+}
+
+model NumberCounter {
+  seriesId  String       @map("series_id") @db.Uuid
+  series    NumberSeries @relation(fields: [seriesId], references: [id])
+  periodKey String       @map("period_key")
+  lastValue Int          @map("last_value")
+
+  @@id([seriesId, periodKey])
+  @@map("number_counter")
+  @@schema("core")
+}
+
+model ApprovalRequest {
+  id            String         @id @default(uuid(7)) @db.Uuid
+  moduleKey     String         @map("module_key")
+  entityKey     String         @map("entity_key")
+  entityId      String         @map("entity_id") @db.Uuid
+  permissionKey String         @map("permission_key")
+  status        ApprovalStatus @default(PENDING)
+  summary       String
+  requestedBy   String         @map("requested_by") @db.Uuid
+  requestedAt   DateTime       @default(now()) @map("requested_at") @db.Timestamptz(3)
+  departmentId  String?        @map("department_id") @db.Uuid
+  decidedBy     String?        @map("decided_by") @db.Uuid
+  decidedAt     DateTime?      @map("decided_at") @db.Timestamptz(3)
+  reason        String?
+  version       Int            @default(1)
+
+  @@index([status, permissionKey])
+  @@index([entityKey, entityId])
+  @@map("approval_request")
+  @@schema("core")
+}
+
+model Attachment {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  moduleKey   String    @map("module_key")
+  entityKey   String    @map("entity_key")
+  entityId    String    @map("entity_id") @db.Uuid
+  kind        String
+  fileName    String    @map("file_name")
+  contentType String    @map("content_type")
+  size        Int
+  sha256      String
+  storageKey  String    @unique @map("storage_key")
+  uploadedBy  String    @map("uploaded_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
+
+  @@index([entityKey, entityId])
+  @@map("attachment")
+  @@schema("core")
+}
+
+model IdempotencyKey {
+  userId      String   @map("user_id") @db.Uuid
+  key         String
+  route       String
+  requestHash String   @map("request_hash")
+  statusCode  Int?     @map("status_code")
+  response    Json?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@id([userId, key])
+  @@index([createdAt])
+  @@map("idempotency_key")
+  @@schema("core")
+}
+
+model OutboxEvent {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  name        String
+  payload     Json
+  status      OutboxStatus @default(PENDING)
+  attempts    Int          @default(0)
+  availableAt DateTime     @default(now()) @map("available_at") @db.Timestamptz(3)
+  lastError   String?      @map("last_error")
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt DateTime?    @map("processed_at") @db.Timestamptz(3)
+
+  @@index([status, availableAt])
+  @@map("outbox_event")
+  @@schema("core")
+}
+
+model ProcessedEvent {
+  eventId     String   @map("event_id") @db.Uuid
+  handler     String
+  processedAt DateTime @default(now()) @map("processed_at") @db.Timestamptz(3)
+
+  @@id([eventId, handler])
+  @@map("processed_event")
+  @@schema("core")
+}
+
+model JobRun {
+  name       String   @id
+  lastRunAt  DateTime @map("last_run_at") @db.Timestamptz(3)
+  lastStatus String   @map("last_status")
+  lastError  String?  @map("last_error")
+
+  @@map("job_run")
+  @@schema("core")
+}

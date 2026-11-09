@@ -8,6 +8,8 @@ const base = {
   INTERNAL_TOKEN_ADMIN: 'a'.repeat(40),
   WEB_ORIGIN: 'http://localhost:4200',
   ADMIN_ORIGIN: 'http://localhost:4300',
+  DATA_ENCRYPTION_KEYS: 'k1:' + Buffer.alloc(32, 1).toString('base64'),
+  DATA_ENCRYPTION_ACTIVE_KEY: 'k1',
 };
 
 describe('loadEnv', () => {
@@ -50,6 +52,10 @@ describe('loadEnv', () => {
         ADMIN_ORIGIN: 'https://admin.example.test',
         RESEND_API_KEY: 're_test',
         MAIL_FROM: 'DAX <no-reply@example.test>',
+        S3_ENDPOINT: 'https://acct.r2.cloudflarestorage.com',
+        S3_BUCKET: 'dax-prod',
+        S3_ACCESS_KEY_ID: 'id',
+        S3_SECRET_ACCESS_KEY: 'secret',
       }).NODE_ENV,
     ).toBe('production');
   });

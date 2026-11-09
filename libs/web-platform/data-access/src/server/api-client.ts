@@ -1,7 +1,7 @@
 import 'server-only';
 import { cookies, headers } from 'next/headers';
 import { cache } from 'react';
-import { type AppName, MeResponse } from '@dax/platform-contract';
+import { type AppName, Capabilities, MeResponse } from '@dax/platform-contract';
 import { apiUrl } from './api-url';
 import { forwardHeaders, readServerConfig } from './config';
 
@@ -63,5 +63,12 @@ export function createApi(app: AppName) {
     return MeResponse.parse(await res.json());
   });
 
-  return { call, request, getMe };
+  const getCapabilities = cache(async (): Promise<Capabilities | null> => {
+    const res = await call('/me/capabilities');
+    if (res.status === 401) return null;
+    if (!res.ok) throw new ApiError(res.status, {});
+    return Capabilities.parse(await res.json());
+  });
+
+  return { call, request, getMe, getCapabilities };
 }
