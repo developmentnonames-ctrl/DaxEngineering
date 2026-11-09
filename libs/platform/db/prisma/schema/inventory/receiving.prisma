@@ -4,6 +4,7 @@ enum MovementType {
   PUTAWAY_OUT
   PUTAWAY_IN
   REVERSAL
+  ISSUE
 
   @@schema("inventory")
 }

@@ -31,3 +31,15 @@ export const stockPutAway = defineEvent(
     ),
   }),
 );
+
+export const stockIssued = defineEvent(
+  'inventory.stock_issued.v1',
+  z.object({
+    aodId: z.uuid(),
+    number: z.string(),
+    mrnId: z.uuid(),
+    lines: z.array(
+      z.object({ itemId: z.uuid(), binId: z.uuid(), qty: z.string() }),
+    ),
+  }),
+);

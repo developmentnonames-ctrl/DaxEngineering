@@ -76,6 +76,10 @@ model Item {
   barcodes       ItemBarcode[]
   binStock       BinStock[]
   ledger         StockLedger[]
+  reservations   Reservation[]
+  holdLines      HoldLine[]
+  mrnLines       MrnLine[]
+  aodLines       AodLine[]
   grnLines       GrnLine[]
   discrepancies  Discrepancy[]
   balances       StockBalance[]
@@ -161,6 +165,7 @@ model Bin {
   updatedBy    String     @map("updated_by") @db.Uuid
   stock        BinStock[]
   ledger       StockLedger[]
+  aodLines     AodLine[]
   defaultItems Item[]
 
   @@unique([storeId, code])

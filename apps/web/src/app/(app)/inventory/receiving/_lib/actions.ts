@@ -81,6 +81,7 @@ function partOf(item: ItemDetail): PartRef {
     brand: item.brand.name,
     description: item.description,
     uom: item.uom,
+    free: item.stock.free,
   };
 }
 
@@ -100,6 +101,7 @@ export async function findParts(q: string): Promise<PartRef[]> {
     brand: i.brand.name,
     description: i.description,
     uom: i.uom,
+    free: i.stock.free,
   }));
 }
 

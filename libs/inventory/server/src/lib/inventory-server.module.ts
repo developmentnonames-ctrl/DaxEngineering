@@ -1,5 +1,15 @@
 import { Module } from '@nestjs/common';
 import { CatalogController } from './catalog.controller';
+import { AodsController } from './issuing/aods.controller';
+import { AodsService } from './issuing/aods.service';
+import { HoldsController } from './issuing/holds.controller';
+import { HoldsService } from './issuing/holds.service';
+import {
+  IssuingSummaryController,
+  MrnsController,
+} from './issuing/mrns.controller';
+import { MrnsService } from './issuing/mrns.service';
+import { MRN_RELEASE_GATES } from './issuing/shared';
 import { ItemsController } from './items.controller';
 import { ItemsService } from './items.service';
 import { LabelsController } from './labels.controller';
@@ -37,6 +47,10 @@ import { SummaryController } from './summary.controller';
     PutawayController,
     DiscrepanciesController,
     MovementsController,
+    HoldsController,
+    MrnsController,
+    IssuingSummaryController,
+    AodsController,
   ],
   providers: [
     MainStore,
@@ -48,6 +62,10 @@ import { SummaryController } from './summary.controller';
     PutawayService,
     DiscrepanciesService,
     MovementsService,
+    HoldsService,
+    MrnsService,
+    AodsService,
+    { provide: MRN_RELEASE_GATES, useValue: [] },
   ],
   exports: [
     MainStore,

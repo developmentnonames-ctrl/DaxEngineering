@@ -52,10 +52,13 @@ export const MOVEMENT_LABELS: Record<MovementType, string> = {
   PUTAWAY_OUT: 'Put away from',
   PUTAWAY_IN: 'Put away to',
   REVERSAL: 'Reversed',
+  ISSUE: 'Issued from',
 };
 
 export const EDITABLE_GRN: readonly GrnStatus[] = ['DRAFT', 'CHECKED'];
 
 export function documentPath(docType: string, docId: string): string | null {
-  return docType === 'GRN' ? grnPath(docId) : null;
+  if (docType === 'GRN') return grnPath(docId);
+  if (docType === 'AOD') return `/inventory/issuing/aods/${docId}`;
+  return null;
 }

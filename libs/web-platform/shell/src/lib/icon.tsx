@@ -120,6 +120,12 @@ const PATHS: Record<string, ReactNode> = {
   ),
   plus: <path d="M12 5v14M5 12h14" />,
   minus: <path d="M5 12h14" />,
+  send: (
+    <>
+      <path d="M21 3L10.5 13.5" />
+      <path d="M21 3l-6.5 18-4-7.5L3 9.5z" />
+    </>
+  ),
   close: <path d="M6 6l12 12M18 6L6 18" />,
   camera: (
     <>

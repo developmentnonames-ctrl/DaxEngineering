@@ -30,9 +30,9 @@ export const config = {
   matcher: [
     {
       // Uploads skip the proxy, which would buffer the body and cut it at 10 MB.
-      // Label PDFs skip it so the browser's PDF viewer is not blocked by the page CSP.
+      // Label and AOD PDFs skip it so the browser's PDF viewer is not blocked by the page CSP.
       source:
-        '/((?!_next/static|_next/image|favicon.ico|healthz|api/files|api/labels|sw.js|manifest.webmanifest|offline.html|icons/|zxing/).*)',
+        '/((?!_next/static|_next/image|favicon.ico|healthz|api/files|api/labels|api/aods|sw.js|manifest.webmanifest|offline.html|icons/|zxing/).*)',
       missing: [{ type: 'header', key: 'next-router-prefetch' }],
     },
   ],

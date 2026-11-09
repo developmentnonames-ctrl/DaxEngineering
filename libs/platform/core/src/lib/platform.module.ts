@@ -41,6 +41,7 @@ import {
   AuthService,
 } from './auth/auth.service';
 import { type DaxRequest, internalCaller } from './auth/internal-caller';
+import { DirectoryController } from './auth/directory.controller';
 import { MeController } from './auth/me.controller';
 import { SessionGuard } from './auth/session.guard';
 
@@ -103,6 +104,7 @@ export class PlatformModule {
       ],
       controllers: [
         MeController,
+        DirectoryController,
         ...ADMIN_CONTROLLERS,
         AttachmentsController,
         ...(options.controllers ?? []),

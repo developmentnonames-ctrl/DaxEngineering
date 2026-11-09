@@ -7,6 +7,9 @@ type BrandField = keyof typeof Prisma.BrandScalarFieldEnum;
 type MachineModelField = keyof typeof Prisma.MachineModelScalarFieldEnum;
 type GrnField = keyof typeof Prisma.GrnScalarFieldEnum;
 type DiscrepancyField = keyof typeof Prisma.DiscrepancyScalarFieldEnum;
+type HoldField = keyof typeof Prisma.HoldScalarFieldEnum;
+type MrnField = keyof typeof Prisma.MrnScalarFieldEnum;
+type AodField = keyof typeof Prisma.AodScalarFieldEnum;
 
 export const itemEntity = defineEntity<ItemField>({
   key: 'inventory.item',
@@ -211,6 +214,95 @@ export const discrepancyEntity = defineEntity<DiscrepancyField>({
   },
 });
 
+const confidential = (label: string) =>
+  ({ label, tier: 'CONFIDENTIAL' }) as const;
+
+export const holdEntity = defineEntity<HoldField>({
+  key: 'inventory.hold',
+  moduleKey: 'inventory',
+  label: 'Stock holds',
+  table: 'inventory.hold',
+  fields: {
+    id: shown('ID'),
+    number: { ...shown('Hold number'), filterable: true, sortable: true },
+    status: { ...shown('Status'), filterable: true },
+    customerId: confidential('Customer'),
+    customerName: { ...confidential('Customer name'), filterable: true },
+    departmentId: { ...shown('Department'), filterable: true },
+    departmentName: shown('Department name'),
+    reason: { ...shown('Reason'), writable: true },
+    convertedMrnId: shown('Request'),
+    releasedBy: shown('Released by'),
+    releasedAt: shown('Released'),
+    version: shown('Version'),
+    createdAt: { ...shown('Created'), sortable: true },
+    createdBy: { label: 'Created by', tier: 'INTERNAL' },
+    updatedAt: shown('Updated'),
+    updatedBy: { label: 'Updated by', tier: 'INTERNAL' },
+  },
+});
+
+export const mrnEntity = defineEntity<MrnField>({
+  key: 'inventory.mrn',
+  moduleKey: 'inventory',
+  label: 'Material requests',
+  table: 'inventory.mrn',
+  fields: {
+    id: shown('ID'),
+    number: { ...shown('MRN number'), filterable: true, sortable: true },
+    subtype: { ...shown('Type'), writable: true, filterable: true },
+    status: { ...shown('Status'), filterable: true },
+    departmentId: { ...shown('Department'), writable: true, filterable: true },
+    departmentName: shown('Department name'),
+    customerId: { ...confidential('Customer'), writable: true },
+    customerName: { ...confidential('Customer name'), filterable: true },
+    jobNumber: { ...shown('Job number'), writable: true, filterable: true },
+    customerPo: { ...shown('Customer PO'), writable: true },
+    quotationRef: { ...shown('Quotation reference'), writable: true },
+    notes: { ...shown('Notes'), writable: true },
+    holdId: shown('Hold'),
+    submittedBy: shown('Submitted by'),
+    submittedAt: shown('Submitted'),
+    checkedBy: shown('Checked by'),
+    checkedAt: shown('Checked'),
+    closedBy: shown('Closed by'),
+    closedAt: shown('Closed'),
+    closeReason: shown('Reason for closing'),
+    version: shown('Version'),
+    createdAt: { ...shown('Created'), sortable: true },
+    createdBy: { label: 'Created by', tier: 'INTERNAL' },
+    updatedAt: shown('Updated'),
+    updatedBy: { label: 'Updated by', tier: 'INTERNAL' },
+  },
+});
+
+export const aodEntity = defineEntity<AodField>({
+  key: 'inventory.aod',
+  moduleKey: 'inventory',
+  label: 'Dispatch notes (AOD)',
+  table: 'inventory.aod',
+  fields: {
+    id: shown('ID'),
+    number: { ...shown('AOD number'), filterable: true, sortable: true },
+    type: { ...shown('Type'), writable: true, filterable: true },
+    status: { ...shown('Status'), filterable: true },
+    mrnId: shown('Request'),
+    deliverTo: { ...shown('Deliver to'), writable: true },
+    vehicleNo: { ...shown('Vehicle'), writable: true },
+    notes: { ...shown('Notes'), writable: true },
+    issuedBy: shown('Issued by'),
+    issuedAt: { ...shown('Issued'), sortable: true },
+    signedBy: shown('Signed copy added by'),
+    signedAt: shown('Signed copy added'),
+    signedFile: shown('Signed copy'),
+    version: shown('Version'),
+    createdAt: { ...shown('Created'), sortable: true },
+    createdBy: { label: 'Created by', tier: 'INTERNAL' },
+    updatedAt: shown('Updated'),
+    updatedBy: { label: 'Updated by', tier: 'INTERNAL' },
+  },
+});
+
 export const INVENTORY_ENTITIES: readonly EntityDef[] = [
   itemEntity,
   binEntity,
@@ -218,4 +310,7 @@ export const INVENTORY_ENTITIES: readonly EntityDef[] = [
   machineModelEntity,
   grnEntity,
   discrepancyEntity,
+  holdEntity,
+  mrnEntity,
+  aodEntity,
 ];

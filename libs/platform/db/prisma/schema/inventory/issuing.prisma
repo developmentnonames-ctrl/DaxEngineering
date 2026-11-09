@@ -1,0 +1,216 @@
+enum ReservationSource {
+  HOLD
+  MRN
+
+  @@schema("inventory")
+}
+
+enum HoldStatus {
+  ACTIVE
+  CONVERTED
+  RELEASED
+
+  @@schema("inventory")
+}
+
+enum MrnSubtype {
+  PRT
+  SRV
+  SAL
+
+  @@schema("inventory")
+}
+
+enum MrnStatus {
+  DRAFT
+  SUBMITTED
+  CHECKED
+  READY
+  PARTLY_ISSUED
+  ISSUED
+  CLOSED
+  SHORT_CLOSED
+  CANCELLED
+
+  @@schema("inventory")
+}
+
+enum AodType {
+  SER
+  REP
+  INS
+  BRK
+  DIR
+  HIR
+
+  @@schema("inventory")
+}
+
+enum AodStatus {
+  PICKING
+  ISSUED
+  SIGNED
+  CANCELLED
+
+  @@schema("inventory")
+}
+
+model Reservation {
+  id           String            @id @default(uuid(7)) @db.Uuid
+  storeId      String            @map("store_id") @db.Uuid
+  itemId       String            @map("item_id") @db.Uuid
+  item         Item              @relation(fields: [itemId], references: [id])
+  source       ReservationSource
+  sourceId     String            @map("source_id") @db.Uuid
+  sourceLineId String            @map("source_line_id") @db.Uuid
+  qty          Decimal           @db.Decimal(14, 3)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([source, sourceLineId])
+  @@index([itemId])
+  @@index([source, sourceId])
+  @@map("reservation")
+  @@schema("inventory")
+}
+
+model Hold {
+  id             String     @id @default(uuid(7)) @db.Uuid
+  number         String     @unique
+  status         HoldStatus @default(ACTIVE)
+  customerId     String?    @map("customer_id") @db.Uuid
+  customerName   String?    @map("customer_name")
+  departmentId   String     @map("department_id") @db.Uuid
+  departmentName String     @map("department_name")
+  reason         String?
+  convertedMrnId String?    @map("converted_mrn_id") @db.Uuid
+  releasedBy     String?    @map("released_by") @db.Uuid
+  releasedAt     DateTime?  @map("released_at") @db.Timestamptz(3)
+  version        Int        @default(1)
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy      String     @map("created_by") @db.Uuid
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy      String     @map("updated_by") @db.Uuid
+  lines          HoldLine[]
+
+  @@index([status, createdAt])
+  @@index([departmentId])
+  @@map("hold")
+  @@schema("inventory")
+}
+
+model HoldLine {
+  id     String  @id @default(uuid(7)) @db.Uuid
+  holdId String  @map("hold_id") @db.Uuid
+  hold   Hold    @relation(fields: [holdId], references: [id], onDelete: Cascade)
+  lineNo Int     @map("line_no")
+  itemId String  @map("item_id") @db.Uuid
+  item   Item    @relation(fields: [itemId], references: [id])
+  qty    Decimal @db.Decimal(14, 3)
+
+  @@unique([holdId, lineNo])
+  @@map("hold_line")
+  @@schema("inventory")
+}
+
+model Mrn {
+  id             String     @id @default(uuid(7)) @db.Uuid
+  number         String?    @unique
+  subtype        MrnSubtype
+  status         MrnStatus  @default(DRAFT)
+  departmentId   String     @map("department_id") @db.Uuid
+  departmentName String     @map("department_name")
+  customerId     String?    @map("customer_id") @db.Uuid
+  customerName   String?    @map("customer_name")
+  jobNumber      String?    @map("job_number")
+  customerPo     String?    @map("customer_po")
+  quotationRef   String?    @map("quotation_ref")
+  notes          String?
+  holdId         String?    @map("hold_id") @db.Uuid
+  submittedBy    String?    @map("submitted_by") @db.Uuid
+  submittedAt    DateTime?  @map("submitted_at") @db.Timestamptz(3)
+  checkedBy      String?    @map("checked_by") @db.Uuid
+  checkedAt      DateTime?  @map("checked_at") @db.Timestamptz(3)
+  closedBy       String?    @map("closed_by") @db.Uuid
+  closedAt       DateTime?  @map("closed_at") @db.Timestamptz(3)
+  closeReason    String?    @map("close_reason")
+  version        Int        @default(1)
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy      String     @map("created_by") @db.Uuid
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy      String     @map("updated_by") @db.Uuid
+  lines          MrnLine[]
+  aods           Aod[]
+
+  @@index([status, createdAt])
+  @@index([departmentId])
+  @@index([createdBy])
+  @@map("mrn")
+  @@schema("inventory")
+}
+
+model MrnLine {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  mrnId          String    @map("mrn_id") @db.Uuid
+  mrn            Mrn       @relation(fields: [mrnId], references: [id], onDelete: Cascade)
+  lineNo         Int       @map("line_no")
+  itemId         String    @map("item_id") @db.Uuid
+  item           Item      @relation(fields: [itemId], references: [id])
+  qtyRequested   Decimal   @map("qty_requested") @db.Decimal(14, 3)
+  qtyIssued      Decimal   @default(0) @map("qty_issued") @db.Decimal(14, 3)
+  qtyShortClosed Decimal   @default(0) @map("qty_short_closed") @db.Decimal(14, 3)
+  notes          String?
+  aodLines       AodLine[]
+
+  @@unique([mrnId, lineNo])
+  @@index([itemId])
+  @@map("mrn_line")
+  @@schema("inventory")
+}
+
+model Aod {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  number      String?   @unique
+  type        AodType
+  status      AodStatus @default(PICKING)
+  mrnId       String    @map("mrn_id") @db.Uuid
+  mrn         Mrn       @relation(fields: [mrnId], references: [id])
+  deliverTo   String?   @map("deliver_to")
+  vehicleNo   String?   @map("vehicle_no")
+  notes       String?
+  issuedBy    String?   @map("issued_by") @db.Uuid
+  issuedAt    DateTime? @map("issued_at") @db.Timestamptz(3)
+  signedBy    String?   @map("signed_by") @db.Uuid
+  signedAt    DateTime? @map("signed_at") @db.Timestamptz(3)
+  signedFile  String?   @map("signed_file") @db.Uuid
+  version     Int       @default(1)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy   String    @map("created_by") @db.Uuid
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy   String    @map("updated_by") @db.Uuid
+  lines       AodLine[]
+
+  @@index([status, createdAt])
+  @@index([mrnId])
+  @@map("aod")
+  @@schema("inventory")
+}
+
+model AodLine {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  aodId        String   @map("aod_id") @db.Uuid
+  aod          Aod      @relation(fields: [aodId], references: [id], onDelete: Cascade)
+  mrnLineId    String   @map("mrn_line_id") @db.Uuid
+  mrnLine      MrnLine  @relation(fields: [mrnLineId], references: [id])
+  itemId       String   @map("item_id") @db.Uuid
+  item         Item     @relation(fields: [itemId], references: [id])
+  binId        String?  @map("bin_id") @db.Uuid
+  bin          Bin?     @relation(fields: [binId], references: [id])
+  qty          Decimal  @db.Decimal(14, 3)
+  scanned      Boolean  @default(false)
+
+  @@index([aodId])
+  @@index([mrnLineId])
+  @@map("aod_line")
+  @@schema("inventory")
+}

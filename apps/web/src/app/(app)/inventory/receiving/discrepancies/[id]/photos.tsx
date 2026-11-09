@@ -5,44 +5,13 @@ import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { Empty, Icon } from '@dax/web-shell';
 import { formatDateTime } from '../../../../../../lib/format';
+import { uploadAttachment } from '../../../../../../lib/upload';
 import { refreshDiscrepancy } from '../../_lib/actions';
-
-const MAX_BYTES = 15 * 1024 * 1024;
 
 export interface PhotoFile {
   id: string;
   fileName: string;
   createdAt: string;
-}
-
-async function uploadOne(
-  entityKey: string,
-  entityId: string,
-  file: File,
-): Promise<string | null> {
-  if (file.size > MAX_BYTES) return `${file.name} is larger than 15 MB.`;
-  const form = new FormData();
-  form.set('entityKey', entityKey);
-  form.set('entityId', entityId);
-  form.set('kind', 'photo');
-  form.set('file', file);
-  try {
-    const res = await fetch('/api/files', { method: 'POST', body: form });
-    if (res.ok) return null;
-    const text = await res.text();
-    try {
-      const body: unknown = JSON.parse(text);
-      if (body && typeof body === 'object' && 'message' in body) {
-        const { message } = body;
-        if (typeof message === 'string') return message;
-      }
-    } catch {
-      if (text && text.length < 200) return text;
-    }
-    return `${file.name} could not be uploaded.`;
-  } catch {
-    return 'The upload failed. Check the connection and try again.';
-  }
 }
 
 export function Photos({
@@ -81,8 +50,13 @@ export function Photos({
     const failed: string[] = [];
     const added: { url: string; name: string }[] = [];
     for (const file of files) {
-      const error = await uploadOne(entityKey, discrepancyId, file);
-      if (error) failed.push(error);
+      const result = await uploadAttachment(
+        entityKey,
+        discrepancyId,
+        'photo',
+        file,
+      );
+      if ('error' in result) failed.push(result.error);
       else {
         const url = URL.createObjectURL(file);
         urls.current.push(url);
