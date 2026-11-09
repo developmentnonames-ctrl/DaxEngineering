@@ -1,0 +1,27 @@
+name: dax-dev
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:-postgres-dev-only}
+      DAX_DB_NAME: dax
+      DAX_MIGRATOR_PASSWORD: ${DAX_MIGRATOR_PASSWORD:-migrator-dev-only}
+      DAX_APP_PASSWORD: ${DAX_APP_PASSWORD:-app-dev-only}
+      DAX_BACKUP_PASSWORD: ${DAX_BACKUP_PASSWORD:-backup-dev-only}
+      DAX_CREATE_SHADOW_DB: 'true'
+      TZ: Asia/Colombo
+    ports:
+      - '127.0.0.1:${DAX_PG_PORT:-55432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./infra/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d dax']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

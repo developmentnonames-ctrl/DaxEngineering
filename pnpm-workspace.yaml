@@ -1,0 +1,16 @@
+packages:
+  - 'apps/*'
+  - 'libs/*/*'
+  - 'tools/*'
+
+# Supply-chain: only these packages may run install scripts. Review before adding.
+allowBuilds:
+  nx: true
+  '@swc/core': true
+  esbuild: true
+  '@parcel/watcher': true
+  unrs-resolver: true
+  sharp: true
+  prisma: true
+  '@prisma/engines': true
+  '@nestjs/core': false

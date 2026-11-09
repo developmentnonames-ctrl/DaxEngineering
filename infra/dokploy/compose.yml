@@ -1,0 +1,77 @@
+x-hardening: &hardening
+  read_only: true
+  tmpfs: ['/tmp']
+  cap_drop: ['ALL']
+  security_opt: ['no-new-privileges:true']
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?set in Dokploy}
+      DAX_DB_NAME: dax
+      DAX_MIGRATOR_PASSWORD: ${DAX_MIGRATOR_PASSWORD:?set in Dokploy}
+      DAX_APP_PASSWORD: ${DAX_APP_PASSWORD:?set in Dokploy}
+      DAX_BACKUP_PASSWORD: ${DAX_BACKUP_PASSWORD:?set in Dokploy}
+      TZ: Asia/Colombo
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ../postgres/initdb:/docker-entrypoint-initdb.d:ro
+    networks: [backend]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d dax']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  migrate:
+    image: ${IMAGE_REGISTRY:?set in Dokploy}/dax-migrate:${IMAGE_TAG:?set in Dokploy}
+    restart: 'no'
+    environment:
+      MIGRATOR_DATABASE_URL: postgresql://dax_migrator:${DAX_MIGRATOR_PASSWORD}@postgres:5432/dax
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [backend]
+
+  api:
+    <<: *hardening
+    image: ${IMAGE_REGISTRY}/dax-api:${IMAGE_TAG}
+    environment:
+      NODE_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: '3000'
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://dax_app:${DAX_APP_PASSWORD}@postgres:5432/dax
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    networks: [backend]
+
+  web:
+    <<: *hardening
+    image: ${IMAGE_REGISTRY}/dax-web:${IMAGE_TAG}
+    environment:
+      API_INTERNAL_URL: http://api:3000
+    tmpfs: ['/tmp', '/app/apps/web/.next/cache']
+    depends_on: [api]
+    networks: [backend, dokploy-network]
+
+  admin:
+    <<: *hardening
+    image: ${IMAGE_REGISTRY}/dax-admin:${IMAGE_TAG}
+    environment:
+      API_INTERNAL_URL: http://api:3000
+    tmpfs: ['/tmp', '/app/apps/admin/.next/cache']
+    depends_on: [api]
+    networks: [backend, dokploy-network]
+
+volumes:
+  pgdata:
+
+networks:
+  backend:
+    internal: true
+  dokploy-network:
+    external: true

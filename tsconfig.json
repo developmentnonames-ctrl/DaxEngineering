@@ -1,0 +1,62 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/api"
+    },
+    {
+      "path": "./apps/web-e2e"
+    },
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./apps/admin"
+    },
+    {
+      "path": "./libs/shared/contracts"
+    },
+    {
+      "path": "./libs/shared/util"
+    },
+    {
+      "path": "./libs/shared/ui"
+    },
+    {
+      "path": "./libs/platform/db"
+    },
+    {
+      "path": "./libs/platform/core"
+    },
+    {
+      "path": "./libs/platform/contract"
+    },
+    {
+      "path": "./libs/web-platform/data-access"
+    },
+    {
+      "path": "./libs/web-platform/shell"
+    },
+    {
+      "path": "./libs/parties/contract"
+    },
+    {
+      "path": "./libs/parties/server"
+    },
+    {
+      "path": "./libs/parties/web"
+    },
+    {
+      "path": "./libs/inventory/contract"
+    },
+    {
+      "path": "./libs/inventory/server"
+    },
+    {
+      "path": "./libs/inventory/web"
+    }
+  ],
+  "compilerOptions": {}
+}

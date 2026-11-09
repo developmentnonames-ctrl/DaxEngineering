@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+**/.next
+**/test-output
+**/coverage
+**/out-tsc
+.nx
+.git
+.github
+.vscode
+.env
+.env.*
+!.env.example
+*.log
+libs/platform/db/src/generated

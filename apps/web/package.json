@@ -1,0 +1,30 @@
+{
+  "name": "@dax/web",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "name": "web",
+    "sourceRoot": "apps/web/src",
+    "tags": [
+      "scope:app",
+      "type:app"
+    ],
+    "targets": {
+      "dev": {
+        "options": {
+          "command": "next dev --port 4200"
+        }
+      },
+      "start": {
+        "options": {
+          "command": "next start --port 4200"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "next": "~16.4.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

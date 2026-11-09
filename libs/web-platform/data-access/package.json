@@ -1,0 +1,31 @@
+{
+  "name": "@dax/web-data-access",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./package.json": "./package.json",
+    "./server": {
+      "types": "./src/server.ts",
+      "import": "./src/server.ts",
+      "default": "./src/server.ts"
+    }
+  },
+  "nx": {
+    "name": "web-data-access",
+    "tags": [
+      "scope:platform",
+      "type:data-access"
+    ]
+  },
+  "dependencies": {
+    "server-only": "^0.0.1"
+  }
+}

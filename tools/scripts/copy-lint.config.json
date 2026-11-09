@@ -1,0 +1,24 @@
+{
+  "$comment": "Staff names that must never appear in product copy. Refer to departments and roles instead. Add names as staff change.",
+  "names": [
+    "Dilshan",
+    "Chalitha",
+    "Bimani",
+    "Sarani",
+    "Thamodi",
+    "Umayangana",
+    "Hiran",
+    "Sampath",
+    "Chandima",
+    "Ashen",
+    "Ayoma",
+    "Nalaka",
+    "Jeewantha",
+    "Piyumi",
+    "Veena",
+    "Madushika",
+    "Nilanga",
+    "Avishka",
+    "Malaivasan"
+  ]
+}
