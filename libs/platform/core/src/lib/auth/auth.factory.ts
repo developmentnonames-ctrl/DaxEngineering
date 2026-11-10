@@ -156,7 +156,10 @@ export function createAuth(d: AuthDeps) {
     plugins: [
       username(),
       twoFactor({
-        issuer: d.app === 'admin' ? 'DAX Admin' : 'DAX',
+        issuer:
+          d.app === 'admin'
+            ? 'DAX Engineering - Admin'
+            : 'DAX Engineering - Stores',
         accountLockout: {
           enabled: true,
           maxFailedAttempts: LOCKOUT_MAX_FAILURES,

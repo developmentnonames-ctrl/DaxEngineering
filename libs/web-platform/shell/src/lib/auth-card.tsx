@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { DaxLogo } from './logo';
 
 export function AuthCard({
   product,
@@ -14,8 +15,7 @@ export function AuthCard({
   return (
     <main className="dax-auth">
       <div className="dax-brand">
-        <b>dax</b>
-        <small>engineering</small>
+        <DaxLogo />
       </div>
       <section className="dax-auth-card">
         <div className="dax-eyebrow">{product}</div>

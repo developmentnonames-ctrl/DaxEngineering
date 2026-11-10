@@ -8,11 +8,10 @@ import {
   Group,
   PasswordInput,
   PinInput,
-  SimpleGrid,
   Stack,
   Text,
 } from '@mantine/core';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, type ReactNode, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { authClient, authErrorMessage } from './auth-client';
 import { clearOfflineData } from './pwa';
@@ -27,6 +26,38 @@ function secretFrom(uri: string): string {
   } catch {
     return '';
   }
+}
+
+function StepHeading({
+  n,
+  title,
+  children,
+}: {
+  n: number;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="dax-2fa-step">
+      <span className="dax-2fa-num">{n}</span>
+      <div>
+        <div className="dax-2fa-title">{title}</div>
+        <Text size="xs" c="dimmed">
+          {children}
+        </Text>
+      </div>
+    </div>
+  );
+}
+
+function downloadCodes(codes: string[]) {
+  const text = `DAX Engineering backup codes\nEach code works once.\n\n${codes.join('\n')}\n`;
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'dax-backup-codes.txt';
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export function TwoFactorSetup({ afterPath = '/' }: { afterPath?: string }) {
@@ -95,46 +126,86 @@ export function TwoFactorSetup({ afterPath = '/' }: { afterPath?: string }) {
   }
 
   return (
-    <form onSubmit={confirm}>
-      <Stack>
-        <Text size="sm">1. Scan this code with your authenticator app.</Text>
-        <Group justify="center" p="sm" bg="white">
-          <QRCode value={step.uri} size={180} />
-        </Group>
-        <Text size="xs" c="dimmed">
-          Can't scan? Enter this key instead: <Code>{step.secret}</Code>
-        </Text>
-        <Text size="sm">
-          2. Save these backup codes somewhere safe. Each works once if you lose
-          your phone.
-        </Text>
-        <SimpleGrid cols={2} spacing={4}>
-          {step.backupCodes.map((c) => (
-            <Code key={c}>{c}</Code>
-          ))}
-        </SimpleGrid>
-        <CopyButton value={step.backupCodes.join('\n')}>
-          {({ copied, copy }) => (
-            <Button variant="light" size="xs" onClick={copy}>
-              {copied ? 'Copied' : 'Copy backup codes'}
+    <form onSubmit={confirm} className="dax-2fa">
+      <div className="dax-2fa-cols">
+        <section className="dax-2fa-panel">
+          <StepHeading n={1} title="Scan the QR code">
+            Open your authenticator app and add a new account.
+          </StepHeading>
+          <div className="dax-2fa-qr">
+            <QRCode value={step.uri} size={164} />
+          </div>
+          <Text size="xs" c="dimmed" ta="center">
+            Can't scan? Enter this key instead
+          </Text>
+          <Group gap={6} wrap="nowrap">
+            <Code className="dax-2fa-key">{step.secret}</Code>
+            <CopyButton value={step.secret}>
+              {({ copied, copy }) => (
+                <Button variant="light" size="compact-sm" onClick={copy}>
+                  {copied ? 'Copied' : 'Copy'}
+                </Button>
+              )}
+            </CopyButton>
+          </Group>
+        </section>
+
+        <section className="dax-2fa-panel">
+          <StepHeading n={2} title="Save your backup codes">
+            Each code works once if you lose your phone. Keep them somewhere
+            safe.
+          </StepHeading>
+          <ol className="dax-2fa-codes">
+            {step.backupCodes.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ol>
+          <Group gap="xs" grow>
+            <CopyButton value={step.backupCodes.join('\n')}>
+              {({ copied, copy }) => (
+                <Button variant="light" size="sm" onClick={copy}>
+                  {copied ? 'Copied' : 'Copy codes'}
+                </Button>
+              )}
+            </CopyButton>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => downloadCodes(step.backupCodes)}
+            >
+              Download
             </Button>
-          )}
-        </CopyButton>
-        <Text size="sm">3. Enter the 6-digit code the app shows.</Text>
+          </Group>
+        </section>
+      </div>
+
+      <section className="dax-2fa-confirm">
+        <StepHeading n={3} title="Enter the 6-digit code">
+          Type the code your app shows now to finish.
+        </StepHeading>
         {error ? <Alert color="red">{error}</Alert> : null}
-        <PinInput
-          length={6}
-          type="number"
-          oneTimeCode
-          value={code}
-          onChange={setCode}
-          onComplete={(value) => void confirm(undefined, value)}
-          aria-label="Authenticator code"
-        />
-        <Button type="submit" loading={busy} disabled={code.length !== 6}>
-          Turn on two-step sign-in
-        </Button>
-      </Stack>
+        <div className="dax-2fa-confirm-row">
+          <div className="dax-2fa-pin">
+            <PinInput
+              length={6}
+              type="number"
+              oneTimeCode
+              value={code}
+              onChange={setCode}
+              onComplete={(value) => void confirm(undefined, value)}
+              aria-label="Authenticator code"
+            />
+          </div>
+          <Button
+            type="submit"
+            size="md"
+            loading={busy}
+            disabled={code.length !== 6}
+          >
+            Turn on two-step sign-in
+          </Button>
+        </div>
+      </section>
     </form>
   );
 }

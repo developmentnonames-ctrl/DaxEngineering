@@ -53,6 +53,9 @@ export const MOVEMENT_LABELS: Record<MovementType, string> = {
   PUTAWAY_IN: 'Put away to',
   REVERSAL: 'Reversed',
   ISSUE: 'Issued from',
+  RETURN: 'Returned to',
+  COUNT_ADJUST: 'Count adjustment',
+  OPENING: 'Opening stock',
 };
 
 export const EDITABLE_GRN: readonly GrnStatus[] = ['DRAFT', 'CHECKED'];
@@ -60,5 +63,7 @@ export const EDITABLE_GRN: readonly GrnStatus[] = ['DRAFT', 'CHECKED'];
 export function documentPath(docType: string, docId: string): string | null {
   if (docType === 'GRN') return grnPath(docId);
   if (docType === 'AOD') return `/inventory/issuing/aods/${docId}`;
+  if (docType === 'RTN') return `/inventory/returns/${docId}`;
+  if (docType === 'CNT') return `/inventory/counts/${docId}`;
   return null;
 }

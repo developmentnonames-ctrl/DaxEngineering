@@ -15,6 +15,12 @@ export const metadata = {
   title: PRODUCT,
   description: 'Users and settings',
   robots: { index: false, follow: false },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+  },
 };
 
 export default async function RootLayout({

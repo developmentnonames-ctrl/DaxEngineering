@@ -141,21 +141,30 @@ export async function activeSupplier(db: Db, supplierId: string) {
 
 const RECEIVING_CODE = binParts(SPECIAL_ZONE_CODE, 0, 0, 'RCV').code;
 const QUARANTINE_CODE = binParts(SPECIAL_ZONE_CODE, 0, 0, 'QUA').code;
+const WARRANTY_CODE = binParts(SPECIAL_ZONE_CODE, 0, 0, 'WTY').code;
 
 export async function specialBins(
   db: Db,
   storeId: string,
-): Promise<{ receiving: string; quarantine: string }> {
+): Promise<{ receiving: string; quarantine: string; warranty: string }> {
   const rows = await db.bin.findMany({
-    where: { storeId, code: { in: [RECEIVING_CODE, QUARANTINE_CODE] } },
+    where: {
+      storeId,
+      code: { in: [RECEIVING_CODE, QUARANTINE_CODE, WARRANTY_CODE] },
+    },
     select: { id: true, code: true },
   });
   const receiving = rows.find((r) => r.code === RECEIVING_CODE);
   const quarantine = rows.find((r) => r.code === QUARANTINE_CODE);
-  if (!receiving || !quarantine) {
-    throw new Error('The receiving and quarantine bins are missing.');
+  const warranty = rows.find((r) => r.code === WARRANTY_CODE);
+  if (!receiving || !quarantine || !warranty) {
+    throw new Error('The receiving, quarantine and warranty bins are missing.');
   }
-  return { receiving: receiving.id, quarantine: quarantine.id };
+  return {
+    receiving: receiving.id,
+    quarantine: quarantine.id,
+    warranty: warranty.id,
+  };
 }
 
 export function auditEntry(

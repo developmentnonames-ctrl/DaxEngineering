@@ -123,22 +123,40 @@ export function KpiTiles({ items }: { items: Kpi[] }) {
   );
 }
 
+/**
+ * How often people use a tile's task. It sets a fixed colour and order:
+ * - often: orange, first (daily work)
+ * - sometimes: blue (a few times a week)
+ * - rarely: gray, last (setup and occasional tasks)
+ */
+export type TileUse = 'often' | 'sometimes' | 'rarely';
+
 export interface ActionTileItem {
   href: string;
   title: string;
   sub?: string;
   icon: string;
-  tint?: 'orange' | 'blue' | 'red' | 'gray';
+  use: TileUse;
 }
 
+const USE_STYLE: Record<TileUse, { rank: number; tint: string }> = {
+  often: { rank: 0, tint: 'orange' },
+  sometimes: { rank: 1, tint: 'blue' },
+  rarely: { rank: 2, tint: 'gray' },
+};
+
 export function ActionTiles({ items }: { items: ActionTileItem[] }) {
+  // Most-used first; tiles with the same use keep the page's order.
+  const sorted = [...items].sort(
+    (a, b) => USE_STYLE[a.use].rank - USE_STYLE[b.use].rank,
+  );
   return (
     <div className="dax-tiles">
-      {items.map((t) => (
+      {sorted.map((t) => (
         <Link
           key={t.href}
           href={t.href}
-          className={`dax-tile ${t.tint ?? 'gray'}`}
+          className={`dax-tile ${USE_STYLE[t.use].tint}`}
         >
           <span className="badge">
             <Icon name={t.icon} size={20} />

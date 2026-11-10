@@ -5,6 +5,8 @@
   --dax-line: #e5e8ed;
   --dax-line-strong: #d3d8df;
   --dax-ink: #12232a;
+  --dax-brand: #162568;
+  --dax-logo: #312f94;
   --dax-muted: #6b7680;
   --dax-on-ink: #ffffff;
   --dax-hi: #ee7a12;
@@ -44,6 +46,8 @@
   --dax-line: #26313a;
   --dax-line-strong: #334150;
   --dax-ink: #e9eef2;
+  --dax-brand: #8c9fe6;
+  --dax-logo: #a9adf2;
   --dax-muted: #93a0ab;
   --dax-on-ink: #0f1418;
   --dax-hi: #f0912f;
@@ -127,31 +131,35 @@ body {
 }
 .dax-brand {
   display: flex;
-  flex-direction: column;
-  line-height: 1;
+  align-items: center;
   text-decoration: none;
-  color: var(--dax-ink);
+  color: var(--dax-logo);
   flex: none;
 }
-.dax-brand b {
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+.dax-logo {
+  --logo-h: 30px;
+  display: inline-flex;
+  flex-direction: column;
 }
-.dax-brand small {
-  font-size: 11px;
+.dax-logo svg {
+  height: var(--logo-h);
+  width: auto;
+  display: block;
+}
+.dax-logo-sub {
+  display: flex;
+  justify-content: space-between;
+  margin-top: calc(var(--logo-h) * 0.18);
+  font-size: max(7.5px, calc(var(--logo-h) * 0.29));
   font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--dax-muted);
-  align-self: flex-end;
-  margin-top: 2px;
+  line-height: 0.8;
 }
 .dax-app-pill {
   font-size: 13px;
   font-weight: 600;
   border-radius: 999px;
   padding: 6px 14px;
-  background: var(--dax-ink);
+  background: var(--dax-brand);
   color: var(--dax-on-ink);
   white-space: nowrap;
 }
@@ -236,7 +244,7 @@ body {
   transform: translateY(-1px);
 }
 .dax-rail a[aria-current='page'] {
-  background: var(--dax-ink);
+  background: var(--dax-brand);
   color: var(--dax-on-ink);
 }
 .dax-rail .tip {
@@ -510,13 +518,39 @@ a.dax-kpi:hover {
 }
 .dax-chips a:hover,
 .dax-chips button:hover {
-  border-color: var(--dax-ink);
+  border-color: var(--dax-brand);
 }
 .dax-chips [aria-pressed='true'],
 .dax-chips [aria-current='true'] {
-  background: var(--dax-ink);
+  background: var(--dax-brand);
   color: var(--dax-on-ink);
-  border-color: var(--dax-ink);
+  border-color: var(--dax-brand);
+}
+
+.dax-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  box-shadow: inset 0 -2px 0 var(--dax-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.dax-tabs a {
+  padding: 10px 14px;
+  border-bottom: 4px solid transparent;
+  color: var(--dax-muted);
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.dax-tabs a:hover {
+  color: var(--dax-ink);
+}
+.dax-tabs a[aria-current='page'] {
+  color: var(--dax-brand);
+  font-weight: 700;
+  border-bottom-color: var(--dax-brand);
 }
 
 .dax-chip-groups {
@@ -618,7 +652,7 @@ a.dax-kpi:hover {
   gap: 8px;
   border-radius: 999px;
   padding: 10px 18px 10px 14px;
-  background: var(--dax-ink);
+  background: var(--dax-brand);
   color: var(--dax-on-ink);
   font-weight: 600;
   font-size: 14.5px;
@@ -649,7 +683,7 @@ a.dax-kpi:hover {
   cursor: text;
 }
 .dax-search label:focus-within {
-  border-color: var(--dax-ink);
+  border-color: var(--dax-brand);
 }
 .dax-search input {
   border: 0;
@@ -855,11 +889,8 @@ a.dax-kpi:hover {
   padding: 40px 16px 64px;
   gap: 28px;
 }
-.dax-auth .dax-brand b {
-  font-size: 44px;
-}
-.dax-auth .dax-brand small {
-  font-size: 13px;
+.dax-auth .dax-logo {
+  --logo-h: 46px;
 }
 .dax-auth-card {
   width: min(440px, 100%);
@@ -885,6 +916,140 @@ a.dax-kpi:hover {
 }
 .dax-auth-body {
   margin-top: 22px;
+}
+
+/* Two-step sign-in setup: two columns, then a full-width confirm row */
+.dax-auth-card:has(.dax-2fa) {
+  width: min(820px, 100%);
+}
+.dax-2fa {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dax-2fa-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.dax-2fa-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--dax-line);
+  border-radius: 20px;
+  background: var(--dax-panel);
+}
+.dax-2fa-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.dax-2fa-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--dax-brand);
+  color: var(--dax-on-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+.dax-2fa-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+/* QR stays on white in dark mode so phones can read it */
+.dax-2fa-qr {
+  align-self: center;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid var(--dax-line);
+  border-radius: 16px;
+  line-height: 0;
+}
+.dax-2fa-key.mantine-Code-root {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dax-2fa-codes {
+  list-style: none;
+  margin: 0;
+  padding: 14px;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: center;
+  gap: 10px 16px;
+  background: var(--dax-soft);
+  border-radius: 14px;
+  font-family: var(--dax-f-mono);
+  font-size: 14px;
+  counter-reset: code;
+}
+.dax-2fa-codes li {
+  counter-increment: code;
+  white-space: nowrap;
+}
+.dax-2fa-codes li::before {
+  content: counter(code) '.';
+  display: inline-block;
+  width: 2.2ch;
+  margin-right: 6px;
+  color: var(--dax-muted);
+  font-size: 12px;
+  text-align: right;
+}
+.dax-2fa-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--dax-soft);
+}
+.dax-2fa-confirm-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.dax-2fa-pin {
+  flex: 1;
+  max-width: 380px;
+}
+.dax-2fa-confirm-row .mantine-Button-root {
+  margin-left: auto;
+  height: 52px;
+  padding-inline: 22px;
+}
+@container (max-width: 620px) {
+  .dax-2fa-cols {
+    grid-template-columns: 1fr;
+  }
+  .dax-2fa-confirm-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dax-2fa-pin {
+    max-width: none;
+  }
+  .dax-2fa-confirm-row .mantine-Button-root {
+    margin-left: 0;
+  }
 }
 
 /* Mantine tables inside cards: no stripes, roomy edges */
@@ -922,7 +1087,7 @@ a.dax-kpi:hover {
   gap: 8px;
   padding: 8px 8px 8px 20px;
   border-radius: 999px;
-  background: var(--dax-ink);
+  background: var(--dax-brand);
   color: var(--dax-on-ink);
   box-shadow: var(--dax-shadow);
   max-width: calc(100% - 24px);
@@ -1024,8 +1189,8 @@ a.dax-kpi:hover {
   }
 }
 @media (max-width: 560px) {
-  .dax-brand b {
-    font-size: 26px;
+  .dax-brand .dax-logo {
+    --logo-h: 25px;
   }
   .dax-me div {
     display: none;

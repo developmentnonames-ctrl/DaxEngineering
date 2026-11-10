@@ -97,31 +97,37 @@ export default async function IssuingPage({
       title: 'New request',
       sub: 'Parts a job or department needs.',
       icon: 'plus',
-      tint: 'blue',
+      use: 'often',
     });
   if (can('inventory.aod.issue'))
     tiles.push({
       href: `${BASE}/mrns?status=READY`,
       title: 'Pick and issue',
-      sub: 'Pick reserved parts and print the AOD.',
+      sub: summary
+        ? `${count.format(summary.mrnReady)} ready. Pick parts and print the AOD.`
+        : 'Pick reserved parts and print the AOD.',
       icon: 'send',
-      tint: 'orange',
+      use: 'often',
     });
   if (can('inventory.mrn.allocate'))
     tiles.push({
       href: `${BASE}/mrns?status=WAITING`,
       title: 'Waiting for stock',
-      sub: 'Assign newly arrived stock to waiting requests.',
+      sub: summary
+        ? `${count.format(summary.mrnWaiting)} requests waiting for stock.`
+        : 'Assign newly arrived stock to waiting requests.',
       icon: 'history',
-      tint: 'gray',
+      use: 'often',
     });
   if (canAods)
     tiles.push({
       href: `${BASE}/aods?status=ISSUED`,
       title: 'Awaiting signature',
-      sub: 'Upload signed copies to complete AODs.',
+      sub: summary
+        ? `${count.format(summary.awaitingSignature)} AODs need their signed copy.`
+        : 'Upload signed copies to complete AODs.',
       icon: 'edit',
-      tint: 'red',
+      use: 'often',
     });
   if (can('inventory.hold.view'))
     tiles.push({
@@ -131,7 +137,7 @@ export default async function IssuingPage({
         ? `${count.format(summary.activeHolds)} active. Stock kept aside.`
         : 'Stock kept aside for a customer or job.',
       icon: 'lock',
-      tint: 'gray',
+      use: 'sometimes',
     });
 
   return (

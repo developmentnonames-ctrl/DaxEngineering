@@ -27,6 +27,14 @@ import { MovementsController } from './receiving/movements.controller';
 import { MovementsService } from './receiving/movements.service';
 import { PutawayController } from './receiving/putaway.controller';
 import { PutawayService } from './receiving/putaway.service';
+import { CountsController } from './counts/counts.controller';
+import { CountsService } from './counts/counts.service';
+import { ReportsController } from './reports/reports.controller';
+import { ReportsService } from './reports/reports.service';
+import { ReturnsController } from './returns/returns.controller';
+import { ReturnsService } from './returns/returns.service';
+import { WarrantyController } from './warranty/warranty.controller';
+import { WarrantyService } from './warranty/warranty.service';
 import { ScanController } from './scan.controller';
 import { ScanService } from './scan.service';
 import { StockController } from './stock.controller';
@@ -51,6 +59,10 @@ import { SummaryController } from './summary.controller';
     MrnsController,
     IssuingSummaryController,
     AodsController,
+    ReturnsController,
+    CountsController,
+    WarrantyController,
+    ReportsController,
   ],
   providers: [
     MainStore,
@@ -65,6 +77,10 @@ import { SummaryController } from './summary.controller';
     HoldsService,
     MrnsService,
     AodsService,
+    ReturnsService,
+    CountsService,
+    WarrantyService,
+    ReportsService,
     { provide: MRN_RELEASE_GATES, useValue: [] },
   ],
   exports: [

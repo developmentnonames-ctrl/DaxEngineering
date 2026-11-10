@@ -72,7 +72,11 @@ export const inventoryManifest = defineModule({
     },
     return_note: {
       name: 'Returns from jobs',
-      actions: { view: {}, create: {}, post: {} },
+      actions: {
+        view: {},
+        create: { label: 'Create and edit drafts' },
+        post: { label: 'Post return' },
+      },
     },
     count: {
       name: 'Stock counts',
@@ -82,11 +86,17 @@ export const inventoryManifest = defineModule({
         count: { label: 'Enter counts' },
         submit: {},
         approve: { label: 'Approve differences', approval: true },
+        cancel: {},
       },
     },
     warranty: {
       name: 'Warranty bin',
-      actions: { view: {}, tag: { label: 'Tag failed part' }, close: {} },
+      actions: {
+        view: {},
+        tag: { label: 'Tag failed part' },
+        send: { label: 'Send to supplier' },
+        close: {},
+      },
     },
     ledger: { name: 'Stock movements', actions: { view: {}, export: {} } },
   },
@@ -169,6 +179,34 @@ export const inventoryManifest = defineModule({
       permission: 'inventory.hold.view',
       icon: 'lock',
     },
+    {
+      key: 'inventory.returns',
+      label: 'Returns',
+      path: '/inventory/returns',
+      permission: 'inventory.return_note.view',
+      icon: 'undo',
+    },
+    {
+      key: 'inventory.counts',
+      label: 'Counts',
+      path: '/inventory/counts',
+      permission: 'inventory.count.view',
+      icon: 'clipboard',
+    },
+    {
+      key: 'inventory.warranty',
+      label: 'Warranty bin',
+      path: '/inventory/warranty',
+      permission: 'inventory.warranty.view',
+      icon: 'shield',
+    },
+    {
+      key: 'inventory.reports',
+      label: 'Reports',
+      path: '/inventory/reports',
+      permission: 'inventory.stock.view',
+      icon: 'chart',
+    },
   ],
   defaultGrants: {
     stores_manager: { '*': 'ALL' },
@@ -205,6 +243,7 @@ export const inventoryManifest = defineModule({
       'count.submit': 'ALL',
       'warranty.view': 'ALL',
       'warranty.tag': 'ALL',
+      'warranty.send': 'ALL',
       'ledger.view': 'ALL',
     },
     stock_viewer: {

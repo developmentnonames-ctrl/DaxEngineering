@@ -5,8 +5,8 @@ import { createApi } from '@dax/web-data-access/server';
 import { canDo } from '@dax/web-shell';
 
 export const APP = 'web' as const;
-export const PRODUCT = 'DAX Stores';
-export const THEME_COLOR = '#12232a';
+export const PRODUCT = 'DAX Engineering - Stores';
+export const THEME_COLOR = '#162568';
 export const api = createApi(APP);
 
 export function safePath(value: string | null | undefined): string | null {

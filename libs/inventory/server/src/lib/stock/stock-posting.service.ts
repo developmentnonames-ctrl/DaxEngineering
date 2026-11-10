@@ -14,7 +14,12 @@ export type MovementKind =
   | 'PUTAWAY_OUT'
   | 'PUTAWAY_IN'
   | 'REVERSAL'
-  | 'ISSUE';
+  | 'ISSUE'
+  | 'RETURN'
+  | 'COUNT_ADJUST'
+  | 'OPENING';
+
+export const COUNT_DOC_TYPE = 'CNT';
 
 export interface Movement {
   itemId: string;
@@ -51,6 +56,7 @@ interface BinInfo {
   code: string;
   kind: 'STORAGE' | 'RECEIVING' | 'QUARANTINE' | 'WARRANTY';
   active: boolean;
+  countId: string | null;
 }
 
 export function notEnoughFree(itemId: string): never {
@@ -108,19 +114,35 @@ export class StockPostingService {
   ): Promise<PostedMovement[]> {
     if (movements.length === 0) return [];
     const storeId = await this.store.id();
+    const binIds = [...new Set(movements.map((m) => m.binId))].sort();
+    // FOR SHARE makes a count start wait for in-flight postings in its bins, and vice versa.
+    const rows = await tx.$queryRaw<
+      {
+        id: string;
+        store_id: string;
+        code: string;
+        kind: BinInfo['kind'];
+        active: boolean;
+        count_id: string | null;
+      }[]
+    >`
+      SELECT id, store_id, code, kind::text AS kind, active, count_id
+      FROM inventory.bin
+      WHERE id = ANY(${binIds}::uuid[])
+      ORDER BY id
+      FOR SHARE`;
     const bins = new Map<string, BinInfo>(
-      (
-        await tx.bin.findMany({
-          where: { id: { in: [...new Set(movements.map((m) => m.binId))] } },
-          select: {
-            id: true,
-            storeId: true,
-            code: true,
-            kind: true,
-            active: true,
-          },
-        })
-      ).map((b) => [b.id, b]),
+      rows.map((b) => [
+        b.id,
+        {
+          id: b.id,
+          storeId: b.store_id,
+          code: b.code,
+          kind: b.kind,
+          active: b.active,
+          countId: b.count_id,
+        },
+      ]),
     );
     const requestId = this.context.get().requestId ?? null;
     const posted: PostedMovement[] = [];
@@ -139,6 +161,13 @@ export class StockPostingService {
         throw new UnprocessableEntityException({
           code: 'WARRANTY_BIN',
           message: 'The warranty bin holds tagged parts, not stock.',
+        });
+      }
+      if (bin.countId && m.docType !== COUNT_DOC_TYPE) {
+        throw new ConflictException({
+          code: 'BIN_COUNTING',
+          message: `Bin ${bin.code} is being counted. Wait until the count is posted or cancelled.`,
+          bin: bin.code,
         });
       }
       if (qty.gt(0) && !bin.active) {

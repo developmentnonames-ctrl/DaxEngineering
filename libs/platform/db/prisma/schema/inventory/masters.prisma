@@ -44,6 +44,7 @@ model MachineModel {
   createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
   items     ItemMachineModel[]
+  warranty  WarrantyTag[]
 
   @@map("machine_model")
   @@schema("inventory")
@@ -83,6 +84,9 @@ model Item {
   grnLines       GrnLine[]
   discrepancies  Discrepancy[]
   balances       StockBalance[]
+  returnLines    ReturnLine[]
+  countLines     CountLine[]
+  warrantyTags   WarrantyTag[]
 
   @@unique([brandId, partNoNorm])
   @@index([partNoNorm])
@@ -145,28 +149,33 @@ model Zone {
 }
 
 model Bin {
-  id           String     @id @default(uuid(7)) @db.Uuid
-  storeId      String     @map("store_id") @db.Uuid
-  store        Store      @relation(fields: [storeId], references: [id])
-  zoneId       String     @map("zone_id") @db.Uuid
-  zone         Zone       @relation(fields: [zoneId], references: [id])
+  id           String        @id @default(uuid(7)) @db.Uuid
+  storeId      String        @map("store_id") @db.Uuid
+  store        Store         @relation(fields: [storeId], references: [id])
+  zoneId       String        @map("zone_id") @db.Uuid
+  zone         Zone          @relation(fields: [zoneId], references: [id])
   code         String
   rack         String
   shelf        String
   position     String
-  kind         BinKind    @default(STORAGE)
-  qrToken      String     @unique @map("qr_token")
-  active       Boolean    @default(true)
+  kind         BinKind       @default(STORAGE)
+  qrToken      String        @unique @map("qr_token")
+  active       Boolean       @default(true)
   notes        String?
-  version      Int        @default(1)
-  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  createdBy    String     @map("created_by") @db.Uuid
-  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
-  updatedBy    String     @map("updated_by") @db.Uuid
+  countId      String?       @map("count_id") @db.Uuid
+  openedAt     DateTime?     @map("opened_at") @db.Timestamptz(3)
+  version      Int           @default(1)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy    String        @map("created_by") @db.Uuid
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy    String        @map("updated_by") @db.Uuid
   stock        BinStock[]
   ledger       StockLedger[]
   aodLines     AodLine[]
   defaultItems Item[]
+  returnLines  ReturnLine[]
+  countLines   CountLine[]
+  warrantyTags WarrantyTag[]
 
   @@unique([storeId, code])
   @@index([zoneId])

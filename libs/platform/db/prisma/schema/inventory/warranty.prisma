@@ -1,0 +1,56 @@
+enum WarrantyStatus {
+  TAGGED
+  SENT
+  CLOSED
+
+  @@schema("inventory")
+}
+
+enum WarrantyOutcome {
+  REPLACED
+  CREDITED
+  REJECTED
+  RETURNED_TO_CUSTOMER
+  SCRAPPED
+
+  @@schema("inventory")
+}
+
+model WarrantyTag {
+  id             String           @id @default(uuid(7)) @db.Uuid
+  number         String           @unique
+  status         WarrantyStatus   @default(TAGGED)
+  itemId         String           @map("item_id") @db.Uuid
+  item           Item             @relation(fields: [itemId], references: [id])
+  qty            Decimal          @default(1) @db.Decimal(14, 3)
+  serialNo       String?          @map("serial_no")
+  machineModelId String?          @map("machine_model_id") @db.Uuid
+  machineModel   MachineModel?    @relation(fields: [machineModelId], references: [id])
+  machineSerial  String?          @map("machine_serial")
+  jobNumber      String?          @map("job_number")
+  customerId     String?          @map("customer_id") @db.Uuid
+  customerName   String?          @map("customer_name")
+  supplierId     String?          @map("supplier_id") @db.Uuid
+  supplierName   String?          @map("supplier_name")
+  claimNumber    String?          @map("claim_number")
+  fault          String
+  binId          String           @map("bin_id") @db.Uuid
+  bin            Bin              @relation(fields: [binId], references: [id])
+  returnLineId   String?          @unique @map("return_line_id") @db.Uuid
+  sentBy         String?          @map("sent_by") @db.Uuid
+  sentAt         DateTime?        @map("sent_at") @db.Timestamptz(3)
+  outcome        WarrantyOutcome?
+  closeNote      String?          @map("close_note")
+  closedBy       String?          @map("closed_by") @db.Uuid
+  closedAt       DateTime?        @map("closed_at") @db.Timestamptz(3)
+  version        Int              @default(1)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy      String           @map("created_by") @db.Uuid
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy      String           @map("updated_by") @db.Uuid
+
+  @@index([status, createdAt])
+  @@index([itemId])
+  @@map("warranty_tag")
+  @@schema("inventory")
+}

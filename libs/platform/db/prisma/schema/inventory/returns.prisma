@@ -1,0 +1,66 @@
+enum ReturnStatus {
+  DRAFT
+  POSTED
+  CANCELLED
+
+  @@schema("inventory")
+}
+
+enum ReturnCondition {
+  GOOD
+  DAMAGED
+  FAULTY
+
+  @@schema("inventory")
+}
+
+model ReturnNote {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  number         String?      @unique
+  status         ReturnStatus @default(DRAFT)
+  aodId          String?      @map("aod_id") @db.Uuid
+  aod            Aod?         @relation(fields: [aodId], references: [id])
+  departmentId   String       @map("department_id") @db.Uuid
+  departmentName String       @map("department_name")
+  customerId     String?      @map("customer_id") @db.Uuid
+  customerName   String?      @map("customer_name")
+  jobNumber      String?      @map("job_number")
+  reason         String?
+  notes          String?
+  postedBy       String?      @map("posted_by") @db.Uuid
+  postedAt       DateTime?    @map("posted_at") @db.Timestamptz(3)
+  version        Int          @default(1)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy      String       @map("created_by") @db.Uuid
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy      String       @map("updated_by") @db.Uuid
+  lines          ReturnLine[]
+
+  @@index([status, createdAt])
+  @@index([aodId])
+  @@map("return_note")
+  @@schema("inventory")
+}
+
+model ReturnLine {
+  id            String          @id @default(uuid(7)) @db.Uuid
+  returnId      String          @map("return_id") @db.Uuid
+  returnNote    ReturnNote      @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  lineNo        Int             @map("line_no")
+  aodLineId     String?         @map("aod_line_id") @db.Uuid
+  aodLine       AodLine?        @relation(fields: [aodLineId], references: [id])
+  itemId        String          @map("item_id") @db.Uuid
+  item          Item            @relation(fields: [itemId], references: [id])
+  qty           Decimal         @db.Decimal(14, 3)
+  condition     ReturnCondition
+  binId         String?         @map("bin_id") @db.Uuid
+  bin           Bin?            @relation(fields: [binId], references: [id])
+  serialNo      String?         @map("serial_no")
+  notes         String?
+  warrantyTagId String?         @map("warranty_tag_id") @db.Uuid
+
+  @@unique([returnId, lineNo])
+  @@index([aodLineId])
+  @@map("return_line")
+  @@schema("inventory")
+}

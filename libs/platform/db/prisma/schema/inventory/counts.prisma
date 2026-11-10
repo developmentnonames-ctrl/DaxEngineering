@@ -1,0 +1,67 @@
+enum CountKind {
+  CYCLE
+  FULL
+  OPENING
+
+  @@schema("inventory")
+}
+
+enum CountStatus {
+  COUNTING
+  SUBMITTED
+  POSTED
+  CANCELLED
+
+  @@schema("inventory")
+}
+
+model StockCount {
+  id           String      @id @default(uuid(7)) @db.Uuid
+  number       String      @unique
+  kind         CountKind
+  status       CountStatus @default(COUNTING)
+  blind        Boolean     @default(false)
+  notes        String?
+  submittedBy  String?     @map("submitted_by") @db.Uuid
+  submittedAt  DateTime?   @map("submitted_at") @db.Timestamptz(3)
+  rejectReason String?     @map("reject_reason")
+  rejectedBy   String?     @map("rejected_by") @db.Uuid
+  rejectedAt   DateTime?   @map("rejected_at") @db.Timestamptz(3)
+  approvedBy   String?     @map("approved_by") @db.Uuid
+  approvedAt   DateTime?   @map("approved_at") @db.Timestamptz(3)
+  cancelledBy  String?     @map("cancelled_by") @db.Uuid
+  cancelledAt  DateTime?   @map("cancelled_at") @db.Timestamptz(3)
+  cancelReason String?     @map("cancel_reason")
+  version      Int         @default(1)
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy    String      @map("created_by") @db.Uuid
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy    String      @map("updated_by") @db.Uuid
+  lines        CountLine[]
+
+  @@index([status, createdAt])
+  @@map("stock_count")
+  @@schema("inventory")
+}
+
+model CountLine {
+  id         String     @id @default(uuid(7)) @db.Uuid
+  countId    String     @map("count_id") @db.Uuid
+  count      StockCount @relation(fields: [countId], references: [id], onDelete: Cascade)
+  binId      String     @map("bin_id") @db.Uuid
+  bin        Bin        @relation(fields: [binId], references: [id])
+  itemId     String     @map("item_id") @db.Uuid
+  item       Item       @relation(fields: [itemId], references: [id])
+  systemQty  Decimal    @map("system_qty") @db.Decimal(14, 3)
+  countedQty Decimal?   @map("counted_qty") @db.Decimal(14, 3)
+  countedBy  String?    @map("counted_by") @db.Uuid
+  countedAt  DateTime?  @map("counted_at") @db.Timestamptz(3)
+  added      Boolean    @default(false)
+  adjustQty  Decimal?   @map("adjust_qty") @db.Decimal(14, 3)
+
+  @@unique([countId, binId, itemId])
+  @@index([binId])
+  @@index([itemId])
+  @@map("count_line")
+  @@schema("inventory")
+}

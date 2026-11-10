@@ -169,26 +169,27 @@ model MrnLine {
 }
 
 model Aod {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  number      String?   @unique
+  id          String       @id @default(uuid(7)) @db.Uuid
+  number      String?      @unique
   type        AodType
-  status      AodStatus @default(PICKING)
-  mrnId       String    @map("mrn_id") @db.Uuid
-  mrn         Mrn       @relation(fields: [mrnId], references: [id])
-  deliverTo   String?   @map("deliver_to")
-  vehicleNo   String?   @map("vehicle_no")
+  status      AodStatus    @default(PICKING)
+  mrnId       String       @map("mrn_id") @db.Uuid
+  mrn         Mrn          @relation(fields: [mrnId], references: [id])
+  deliverTo   String?      @map("deliver_to")
+  vehicleNo   String?      @map("vehicle_no")
   notes       String?
-  issuedBy    String?   @map("issued_by") @db.Uuid
-  issuedAt    DateTime? @map("issued_at") @db.Timestamptz(3)
-  signedBy    String?   @map("signed_by") @db.Uuid
-  signedAt    DateTime? @map("signed_at") @db.Timestamptz(3)
-  signedFile  String?   @map("signed_file") @db.Uuid
-  version     Int       @default(1)
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  createdBy   String    @map("created_by") @db.Uuid
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
-  updatedBy   String    @map("updated_by") @db.Uuid
+  issuedBy    String?      @map("issued_by") @db.Uuid
+  issuedAt    DateTime?    @map("issued_at") @db.Timestamptz(3)
+  signedBy    String?      @map("signed_by") @db.Uuid
+  signedAt    DateTime?    @map("signed_at") @db.Timestamptz(3)
+  signedFile  String?      @map("signed_file") @db.Uuid
+  version     Int          @default(1)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy   String       @map("created_by") @db.Uuid
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy   String       @map("updated_by") @db.Uuid
   lines       AodLine[]
+  returnNotes ReturnNote[]
 
   @@index([status, createdAt])
   @@index([mrnId])
@@ -197,17 +198,18 @@ model Aod {
 }
 
 model AodLine {
-  id           String   @id @default(uuid(7)) @db.Uuid
-  aodId        String   @map("aod_id") @db.Uuid
-  aod          Aod      @relation(fields: [aodId], references: [id], onDelete: Cascade)
-  mrnLineId    String   @map("mrn_line_id") @db.Uuid
-  mrnLine      MrnLine  @relation(fields: [mrnLineId], references: [id])
-  itemId       String   @map("item_id") @db.Uuid
-  item         Item     @relation(fields: [itemId], references: [id])
-  binId        String?  @map("bin_id") @db.Uuid
-  bin          Bin?     @relation(fields: [binId], references: [id])
-  qty          Decimal  @db.Decimal(14, 3)
-  scanned      Boolean  @default(false)
+  id          String       @id @default(uuid(7)) @db.Uuid
+  aodId       String       @map("aod_id") @db.Uuid
+  aod         Aod          @relation(fields: [aodId], references: [id], onDelete: Cascade)
+  mrnLineId   String       @map("mrn_line_id") @db.Uuid
+  mrnLine     MrnLine      @relation(fields: [mrnLineId], references: [id])
+  itemId      String       @map("item_id") @db.Uuid
+  item        Item         @relation(fields: [itemId], references: [id])
+  binId       String?      @map("bin_id") @db.Uuid
+  bin         Bin?         @relation(fields: [binId], references: [id])
+  qty         Decimal      @db.Decimal(14, 3)
+  scanned     Boolean      @default(false)
+  returnLines ReturnLine[]
 
   @@index([aodId])
   @@index([mrnLineId])
