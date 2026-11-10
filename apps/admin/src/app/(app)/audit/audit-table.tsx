@@ -1,20 +1,10 @@
 'use client';
 
-import {
-  Alert,
-  Button,
-  Code,
-  Stack,
-  Table,
-  Text,
-  UnstyledButton,
-} from '@mantine/core';
+import { Code, Stack, Table, Text, UnstyledButton } from '@mantine/core';
 import { Empty, Mono, Pill, SectionCard } from '@dax/web-shell';
-import { Fragment, useState, useTransition } from 'react';
-import type { AuditEntry, AuditPage } from '@dax/platform-contract';
+import { Fragment, type ReactNode, useState } from 'react';
+import type { AuditEntry } from '@dax/platform-contract';
 import { formatDateTime, humanizeAction } from '../../../lib/format';
-import { loadMoreAudit } from './actions';
-import type { AuditFilters } from './query';
 
 function display(value: unknown): string {
   if (value === null || value === undefined || value === '') return '—';
@@ -111,41 +101,24 @@ function EntryDiff({
 }
 
 export function AuditTable({
-  filters,
-  initial,
+  entries,
+  pager,
   entityLabels,
   fieldLabels,
 }: {
-  filters: AuditFilters;
-  initial: AuditPage;
+  entries: AuditEntry[];
+  /** Numbered pages, rendered by the server page. */
+  pager: ReactNode;
   entityLabels: Record<string, string>;
   fieldLabels: Record<string, string>;
 }) {
-  const [entries, setEntries] = useState(initial.entries);
-  const [cursor, setCursor] = useState(initial.nextCursor);
   const [open, setOpen] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  const loadMore = () => {
-    if (!cursor) return;
-    startTransition(async () => {
-      const result = await loadMoreAudit({ filters, cursor });
-      if (!result.page) {
-        setError(result.error ?? 'Could not load more.');
-        return;
-      }
-      const next = result.page;
-      setError(null);
-      setEntries((prev) => [...prev, ...next.entries]);
-      setCursor(next.nextCursor);
-    });
-  };
 
   if (!entries.length)
     return (
       <SectionCard title="Entries">
         <Empty title="No entries match">Try different filters.</Empty>
+        {pager}
       </SectionCard>
     );
 
@@ -225,20 +198,7 @@ export function AuditTable({
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>
-      {error || cursor ? (
-        <div className="dax-card-body" style={{ paddingTop: 12 }}>
-          <Stack gap="sm">
-            {error ? <Alert color="red">{error}</Alert> : null}
-            {cursor ? (
-              <div className="dax-pager">
-                <Button variant="default" onClick={loadMore} loading={pending}>
-                  Load more
-                </Button>
-              </div>
-            ) : null}
-          </Stack>
-        </div>
-      ) : null}
+      {pager}
     </SectionCard>
   );
 }

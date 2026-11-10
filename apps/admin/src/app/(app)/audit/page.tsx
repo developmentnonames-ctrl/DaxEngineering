@@ -8,12 +8,12 @@ import {
   TextInput,
 } from '@mantine/core';
 import { AdminUserList, AuditPage } from '@dax/platform-contract';
-import { canDo, PageHead, SectionCard } from '@dax/web-shell';
+import { canDo, PageHead, Pager, SectionCard } from '@dax/web-shell';
 import { getCatalog } from '../../../lib/data';
 import { unlessForbidden } from '../../../lib/load';
 import { api, requirePermission } from '../../../lib/server';
 import { AuditTable } from './audit-table';
-import { auditPath, readFilters } from './query';
+import { auditPath, readFilters, readPaging } from './query';
 
 export default async function AuditLogPage({
   searchParams,
@@ -21,13 +21,18 @@ export default async function AuditLogPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const caps = await requirePermission('core.audit.view');
-  const { filters, valid } = readFilters(await searchParams);
+  const params = await searchParams;
+  const { filters, valid } = readFilters(params);
+  const paging = readPaging(params);
   const [page, catalog, users] = await Promise.all([
-    api.request(auditPath(filters), (d) => AuditPage.parse(d)),
+    api.request(auditPath(filters, paging), (d) => AuditPage.parse(d)),
     unlessForbidden(getCatalog(), { modules: [], entities: [] }),
     canDo(caps, 'core.users.view')
       ? unlessForbidden(
-          api.request('/admin/users', (d) => AdminUserList.parse(d)),
+          // Every user, for the "User" filter.
+          api.request('/admin/users?limit=500', (d) => ({
+            users: AdminUserList.parse(d).users,
+          })),
           { users: [] },
         )
       : Promise.resolve({ users: [] }),
@@ -120,9 +125,19 @@ export default async function AuditLogPage({
         </Alert>
       )}
       <AuditTable
-        key={JSON.stringify(filters)}
-        filters={filters}
-        initial={page}
+        key={`${JSON.stringify(filters)}-${page.page}-${page.limit}`}
+        entries={page.entries}
+        pager={
+          <Pager
+            path="/audit"
+            query={Object.fromEntries(
+              Object.entries(filters).map(([k, v]) => [k, v ?? undefined]),
+            )}
+            total={page.total}
+            page={page.page}
+            limit={page.limit}
+          />
+        }
         entityLabels={entityLabels}
         fieldLabels={fieldLabels}
       />

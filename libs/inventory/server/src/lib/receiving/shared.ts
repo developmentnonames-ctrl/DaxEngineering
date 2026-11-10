@@ -5,7 +5,7 @@ import type {
   TransactionClient,
 } from '@dax/platform-db';
 import { binParts } from '../bin-codes';
-import { decodeCursor, invalid, MODULE_KEY } from '../common';
+import { invalid, MODULE_KEY } from '../common';
 import { type DecimalLike, isWhole } from '../stock-math';
 
 export type Db = PrismaService | TransactionClient;
@@ -65,27 +65,6 @@ export function stampOf(
 ): { by: string | null; at: string } | null {
   if (!at) return null;
   return { by: by ? (names.get(by) ?? null) : null, at: at.toISOString() };
-}
-
-export function timeCursor(
-  cursor: string | undefined,
-): { at: Date; id: string } | null {
-  if (!cursor) return null;
-  const { key, id } = decodeCursor(cursor);
-  const at = new Date(key);
-  if (Number.isNaN(at.getTime())) invalid('Bad cursor.', ['cursor']);
-  return { at, id };
-}
-
-export function createdBefore(cursor: string | undefined) {
-  const point = timeCursor(cursor);
-  if (!point) return {};
-  return {
-    OR: [
-      { createdAt: { lt: point.at } },
-      { createdAt: point.at, id: { lt: point.id } },
-    ],
-  };
 }
 
 export interface ItemCheck {

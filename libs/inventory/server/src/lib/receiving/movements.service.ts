@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { MovementPage, MovementQuery } from '@dax/inventory-contract';
-import { PrismaService } from '@dax/platform-db';
-import { encodeCursor, notFound, pageFrom } from '../common';
+import { pageMeta, pageWindow } from '@dax/contracts';
+import { type Prisma, PrismaService } from '@dax/platform-db';
+import { notFound } from '../common';
 import { qtyString } from '../stock-math';
-import { timeCursor, userNames } from './shared';
+import { userNames } from './shared';
 
 @Injectable()
 export class MovementsService {
@@ -15,19 +16,9 @@ export class MovementsService {
       select: { id: true },
     });
     if (!item) notFound('Item not found.');
-    const point = timeCursor(query.cursor);
-    const rows = await this.prisma.stockLedger.findMany({
-      where: {
-        itemId,
-        ...(point
-          ? {
-              OR: [
-                { occurredAt: { lt: point.at } },
-                { occurredAt: point.at, id: { lt: point.id } },
-              ],
-            }
-          : {}),
-      },
+    const where: Prisma.StockLedgerWhereInput = { itemId };
+    const findRows = this.prisma.stockLedger.findMany({
+      where,
       select: {
         id: true,
         occurredAt: true,
@@ -41,17 +32,18 @@ export class MovementsService {
         bin: { select: { id: true, code: true } },
       },
       orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
-      take: query.limit + 1,
+      ...pageWindow(query),
     });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.occurredAt.toISOString(), r.id),
-    );
+    const [rows, total] = await Promise.all([
+      findRows,
+      this.prisma.stockLedger.count({ where }),
+    ]);
     const names = await userNames(
       this.prisma,
-      page.rows.map((r) => r.actorId),
+      rows.map((r) => r.actorId),
     );
     return {
-      items: page.rows.map((r) => ({
+      items: rows.map((r) => ({
         id: r.id,
         occurredAt: r.occurredAt.toISOString(),
         bin: r.bin,
@@ -63,7 +55,7 @@ export class MovementsService {
         docNumber: r.docNumber,
         actor: names.get(r.actorId) ?? null,
       })),
-      nextCursor: page.nextCursor,
+      ...pageMeta(query, total),
     };
   }
 }

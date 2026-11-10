@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { GRANT_SCOPES, FIELD_TIERS } from '@dax/contracts';
+import { FIELD_TIERS, GRANT_SCOPES, PageParams } from '@dax/contracts';
 import { APP_NAMES, PendingStep, Username } from './auth';
 
 export const Scope = z.enum(GRANT_SCOPES);
@@ -130,7 +130,30 @@ export const AdminUser = z.object({
   departments: z.array(z.object({ id: Id, name: z.string() })),
 });
 export type AdminUser = z.infer<typeof AdminUser>;
-export const AdminUserList = z.object({ users: z.array(AdminUser) });
+export const USER_STATUS_FILTERS = [
+  'all',
+  'active',
+  'invited',
+  'locked',
+  'deactivated',
+] as const;
+export type UserStatusFilter = (typeof USER_STATUS_FILTERS)[number];
+
+/** Users are few, so pickers (e.g. the audit "who" filter) may ask for up to 500. */
+export const USER_LIST_MAX = 500;
+export const AdminUserQuery = PageParams.extend({
+  q: z.string().trim().max(100).optional(),
+  status: z.enum(USER_STATUS_FILTERS).default('all'),
+  limit: z.coerce.number().int().min(1).max(USER_LIST_MAX).default(25),
+});
+export type AdminUserQuery = z.infer<typeof AdminUserQuery>;
+
+export const AdminUserList = z.object({
+  users: z.array(AdminUser),
+  total: z.int().min(0),
+  page: z.int().min(1),
+  limit: z.int().min(1),
+});
 export type AdminUserList = z.infer<typeof AdminUserList>;
 
 export const OverrideDto = z.object({
@@ -246,20 +269,22 @@ export const AuditEntry = z.object({
   restricted: z.boolean(),
 });
 export type AuditEntry = z.infer<typeof AuditEntry>;
-export const AuditQuery = z.object({
-  entityKey: z.string().optional(),
-  entityId: z.string().optional(),
-  actorId: z.uuid().optional(),
-  action: z.string().optional(),
-  from: IsoDate.optional(),
-  to: IsoDate.optional(),
-  cursor: z.string().optional(),
-  limit: z.coerce.number().int().min(1).max(200).default(50),
-});
+export const AuditQuery = z
+  .object({
+    entityKey: z.string().optional(),
+    entityId: z.string().optional(),
+    actorId: z.uuid().optional(),
+    action: z.string().optional(),
+    from: IsoDate.optional(),
+    to: IsoDate.optional(),
+  })
+  .extend(PageParams.shape);
 export type AuditQuery = z.infer<typeof AuditQuery>;
 export const AuditPage = z.object({
   entries: z.array(AuditEntry),
-  nextCursor: z.string().nullable(),
+  total: z.int().min(0),
+  page: z.int().min(1),
+  limit: z.int().min(1),
 });
 export type AuditPage = z.infer<typeof AuditPage>;
 

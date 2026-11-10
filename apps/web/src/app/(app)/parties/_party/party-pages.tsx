@@ -15,6 +15,7 @@ import {
   Facts,
   Mono,
   PageHead,
+  Pager,
   Pill,
   SectionCard,
 } from '@dax/web-shell';
@@ -22,8 +23,7 @@ import { ConfirmAction } from '../../../../components/confirm-action';
 import { ImportScreen } from '../../../../components/import-screen';
 import { LinkButton } from '../../../../components/links';
 import { ListFilters } from '../../../../components/list-filters';
-import { Pager } from '../../../../components/pager';
-import { formatDateTime } from '../../../../lib/format';
+import { formatCount, formatDateTime } from '../../../../lib/format';
 import { uuidParam } from '../../../../lib/load';
 import { flatten, type SearchParams } from '../../../../lib/query';
 import { requirePermission } from '../../../../lib/server';
@@ -59,7 +59,8 @@ export async function PartyListPage({
   const config = PARTIES[kind];
   const caps = await requirePermission(`${config.permission}.view`);
   const query = flatten(await searchParams);
-  const { items, nextCursor } = await listParties(kind, query);
+  const page = await listParties(kind, query);
+  const { items } = page;
   const isSupplier = kind === 'supplier';
   const href = (p: PartyDto) => `${config.base}/${p.id}`;
 
@@ -91,7 +92,7 @@ export async function PartyListPage({
       <SectionCard
         flush
         title={`All ${config.noun}s`}
-        note={`${items.length}${nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <ListFilters
             searchPlaceholder="Name, code or phone"
@@ -192,8 +193,14 @@ export async function PartyListPage({
             </Box>
           </>
         )}
+        <Pager
+          path={config.base}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager path={config.base} query={query} nextCursor={nextCursor} />
     </>
   );
 }

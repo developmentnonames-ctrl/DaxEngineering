@@ -54,21 +54,24 @@ export function Movements({
 }: {
   itemId: string;
   uom: string;
-  initial: { items: MovementRow[]; nextCursor: string | null };
+  initial: { items: MovementRow[]; total: number; page: number };
 }) {
   const [rows, setRows] = useState(initial.items);
-  const [cursor, setCursor] = useState(initial.nextCursor);
+  const [page, setPage] = useState(initial.page);
+  const [total, setTotal] = useState(initial.total);
+  const hasMore = rows.length < total;
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function more() {
-    if (!cursor) return;
+    if (!hasMore) return;
     startTransition(async () => {
-      const page = await loadMovements(itemId, cursor);
-      setError(page.error ?? null);
-      if (page.error) return;
-      setRows((prev) => [...prev, ...page.rows]);
-      setCursor(page.nextCursor);
+      const next = await loadMovements(itemId, page + 1);
+      setError(next.error ?? null);
+      if (next.error) return;
+      setRows((prev) => [...prev, ...next.rows]);
+      setPage(page + 1);
+      setTotal(next.total);
     });
   }
 
@@ -144,10 +147,10 @@ export function Movements({
           </div>
         ))}
       </Box>
-      {error || cursor ? (
+      {error || hasMore ? (
         <div className="dax-card-body" style={{ paddingTop: 12 }}>
           {error ? <Alert color="red">{error}</Alert> : null}
-          {cursor ? (
+          {hasMore ? (
             <Group justify="center">
               <Button variant="default" loading={pending} onClick={more}>
                 Load more

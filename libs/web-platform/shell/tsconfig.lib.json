@@ -47,6 +47,9 @@
   "references": [
     {
       "path": "../../platform/contract/tsconfig.lib.json"
+    },
+    {
+      "path": "../../shared/contracts/tsconfig.lib.json"
     }
   ]
 }

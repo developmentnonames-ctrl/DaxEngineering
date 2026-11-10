@@ -18,7 +18,7 @@ export async function listParties(kind: PartyKind, raw: Query) {
       SCHEMAS[kind].page.parse(d),
     ),
   );
-  return { items: page.items as PartyDto[], nextCursor: page.nextCursor };
+  return { ...page, items: page.items as PartyDto[] };
 }
 
 export function getParty(kind: PartyKind, id: string): Promise<PartyDto> {

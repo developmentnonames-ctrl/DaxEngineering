@@ -51,33 +51,6 @@ export function isUniqueViolation(error: unknown): boolean {
   return (error as { code?: string } | null)?.code === 'P2002';
 }
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export interface Cursor {
-  name: string;
-  id: string;
-}
-
-export function encodeCursor(cursor: Cursor): string {
-  return Buffer.from(`${cursor.name}|${cursor.id}`, 'utf8').toString(
-    'base64url',
-  );
-}
-
-export function decodeCursor(value: string): Cursor {
-  const text = Buffer.from(value, 'base64url').toString('utf8');
-  const split = text.lastIndexOf('|');
-  const id = text.slice(split + 1);
-  if (split < 0 || !UUID.test(id)) {
-    throw new BadRequestException({
-      code: 'INVALID_CURSOR',
-      message: 'This list position is no longer valid. Reload the list.',
-      fields: ['cursor'],
-    });
-  }
-  return { name: text.slice(0, split), id };
-}
-
 type CsvRequest = IncomingMessage & { body?: unknown };
 
 export async function readCsvBody(

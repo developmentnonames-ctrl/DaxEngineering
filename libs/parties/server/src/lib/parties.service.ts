@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { ImportResult } from '@dax/contracts';
+import { type ImportResult, pageMeta, pageWindow } from '@dax/contracts';
 import { PartyQuery } from '@dax/parties-contract';
 import {
   AuditService,
@@ -22,19 +22,14 @@ import {
   type TransactionClient,
 } from '@dax/platform-db';
 import { type ImportError, parsePartyCsv, type Row } from './csv-import';
-import {
-  type Actor,
-  decodeCursor,
-  encodeCursor,
-  isUniqueViolation,
-  parse,
-  stale,
-} from './http';
+import { type Actor, isUniqueViolation, parse, stale } from './http';
 import type { PartyKind } from './kinds';
 
 export interface Page<D> {
   items: D[];
-  nextCursor: string | null;
+  total: number;
+  page: number;
+  limit: number;
 }
 
 const MODULE_KEY = 'parties';
@@ -105,7 +100,6 @@ export class PartiesService {
     rawQuery: unknown,
   ): Promise<Page<D>> {
     const query = parse(PartyQuery, rawQuery);
-    const after = query.cursor ? decodeCursor(query.cursor) : null;
     const conditions: Prisma.Sql[] = [];
     if (query.active !== 'all') {
       conditions.push(Prisma.sql`active = ${query.active === 'true'}`);
@@ -116,24 +110,23 @@ export class PartiesService {
         Prisma.sql`(lower(name) LIKE ${like} OR code = ${query.q.toUpperCase()})`,
       );
     }
-    if (after) {
-      conditions.push(
-        Prisma.sql`(name, id) > (${after.name}, ${after.id}::uuid)`,
-      );
-    }
     const where = conditions.length
       ? Prisma.join(conditions, ' AND ')
       : Prisma.sql`TRUE`;
-    const page = await this.prisma.$queryRaw<{ id: string; name: string }[]>`
-      SELECT id, name FROM ${Prisma.raw(kind.sqlTable)}
-      WHERE ${where}
-      ORDER BY name, id
-      LIMIT ${query.limit + 1}`;
-    const ids = page.slice(0, query.limit).map((r) => r.id);
-    const last = page[query.limit - 1];
-    const nextCursor =
-      page.length > query.limit && last ? encodeCursor(last) : null;
-    if (ids.length === 0) return { items: [], nextCursor: null };
+    const { skip, take } = pageWindow(query);
+    const [page, counted] = await Promise.all([
+      this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM ${Prisma.raw(kind.sqlTable)}
+        WHERE ${where}
+        ORDER BY name, id
+        LIMIT ${take} OFFSET ${skip}`,
+      this.prisma.$queryRaw<{ total: bigint }[]>`
+        SELECT count(*) AS total FROM ${Prisma.raw(kind.sqlTable)}
+        WHERE ${where}`,
+    ]);
+    const meta = pageMeta(query, Number(counted[0]?.total ?? 0));
+    const ids = page.map((r) => r.id);
+    if (ids.length === 0) return { items: [], ...meta };
 
     const rows = await kind.table(this.prisma).findMany({
       where: { id: { in: ids } },
@@ -144,7 +137,7 @@ export class PartiesService {
       .map((id) => byId.get(id))
       .filter((r): r is Row => r !== undefined)
       .map((r) => this.toDto(kind, policy, r));
-    return { items, nextCursor };
+    return { items, ...meta };
   }
 
   async get<D extends Row>(

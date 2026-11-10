@@ -8,10 +8,20 @@ import {
   TableTr,
 } from '@mantine/core';
 import Link from 'next/link';
-import { CardBody, Empty, Mono, PageHead, SectionCard } from '@dax/web-shell';
+import {
+  CardBody,
+  Empty,
+  Mono,
+  PageHead,
+  Pager,
+  SectionCard,
+} from '@dax/web-shell';
 import { ListFilters } from '../../../../../components/list-filters';
-import { Pager } from '../../../../../components/pager';
-import { formatDateTime, formatQty } from '../../../../../lib/format';
+import {
+  formatCount,
+  formatDateTime,
+  formatQty,
+} from '../../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../../lib/query';
 import { requirePermission } from '../../../../../lib/server';
 import { listDiscrepancies } from '../_lib/data';
@@ -39,7 +49,7 @@ export default async function DiscrepanciesPage({
       <SectionCard
         flush
         title="Found at receiving"
-        note={`${page.items.length}${page.nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <ListFilters
             searchPlaceholder="Part number, supplier or GRN"
@@ -138,12 +148,14 @@ export default async function DiscrepanciesPage({
             </Box>
           </>
         )}
+        <Pager
+          path={`${BASE}/discrepancies`}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager
-        path={`${BASE}/discrepancies`}
-        query={query}
-        nextCursor={page.nextCursor}
-      />
     </>
   );
 }

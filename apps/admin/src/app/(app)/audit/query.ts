@@ -12,6 +12,25 @@ export const AuditFilters = z.object({
 });
 export type AuditFilters = z.infer<typeof AuditFilters>;
 
+// Matches the API: 25 rows by default, at most 100.
+const Paging = z.object({
+  page: z.coerce.number().int().min(1).max(100_000).catch(1),
+  limit: z.coerce.number().int().min(1).max(100).catch(25),
+});
+export type Paging = z.infer<typeof Paging>;
+
+/** The page and rows-per-page from the URL; bad values fall back to the defaults. */
+export function readPaging(
+  params: Record<string, string | string[] | undefined>,
+): Paging {
+  const one = (v: string | string[] | undefined) =>
+    Array.isArray(v) ? v[0] : v;
+  return Paging.parse({
+    page: one(params['page']) ?? 1,
+    limit: one(params['limit']) ?? 25,
+  });
+}
+
 export function readFilters(
   params: Record<string, string | string[] | undefined>,
 ): { filters: AuditFilters; valid: boolean } {
@@ -26,7 +45,7 @@ export function readFilters(
     : { filters: {}, valid: false };
 }
 
-export function auditPath(filters: AuditFilters, cursor?: string): string {
+export function auditPath(filters: AuditFilters, paging: Paging): string {
   const q = new URLSearchParams();
   if (filters.entityKey) q.set('entityKey', filters.entityKey);
   if (filters.entityId) q.set('entityId', filters.entityId);
@@ -34,7 +53,7 @@ export function auditPath(filters: AuditFilters, cursor?: string): string {
   if (filters.action) q.set('action', filters.action);
   if (filters.from) q.set('from', `${filters.from}T00:00:00+05:30`);
   if (filters.to) q.set('to', `${filters.to}T23:59:59.999+05:30`);
-  if (cursor) q.set('cursor', cursor);
-  q.set('limit', '50');
+  q.set('page', String(paging.page));
+  q.set('limit', String(paging.limit));
   return `/admin/audit?${q.toString()}`;
 }

@@ -19,7 +19,7 @@ import {
 } from '@dax/platform-core';
 import type { PrismaService } from '@dax/platform-db';
 import { PARTIES_ENTITIES } from './entities';
-import { decodeCursor, encodeCursor, readCsvBody } from './http';
+import { readCsvBody } from './http';
 import { CUSTOMERS, type PartyTable, SUPPLIERS } from './kinds';
 import { PartiesService } from './parties.service';
 import type { Row } from './csv-import';
@@ -448,17 +448,6 @@ describe('PartiesService import', () => {
       expect.objectContaining({ row: 0, field: 'phone' }),
     ]);
     expect(result.created).toBe(0);
-  });
-});
-
-describe('cursor', () => {
-  it('round-trips names containing the separator', () => {
-    const cursor = { name: 'A|B Motors', id: ID };
-    expect(decodeCursor(encodeCursor(cursor))).toEqual(cursor);
-  });
-
-  it('rejects garbage', () => {
-    expect(() => decodeCursor('bm9wZQ')).toThrow(BadRequestException);
   });
 });
 

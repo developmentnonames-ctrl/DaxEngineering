@@ -29,7 +29,13 @@ import { ScanCode, scanLookupPath } from '../../../../../lib/scan-code';
 import { api } from '../../../../../lib/server';
 import type { PickerOption } from '../../_lib/search-actions';
 import { BASE, grnPath } from './labels';
-import type { BinLookup, MovementsResult, PartLookup, PartRef } from './types';
+import {
+  type BinLookup,
+  MOVEMENTS_PER_PAGE,
+  type MovementsResult,
+  type PartLookup,
+  type PartRef,
+} from './types';
 
 const CODES: Record<string, string> = {
   STALE: 'Someone else changed this. Reload.',
@@ -66,7 +72,7 @@ export async function searchSuppliers(q: string): Promise<PickerOption[]> {
       `/parties/suppliers${toQuery({ q: query.data || undefined, active: 'true', limit: 20 })}`,
       (d) => SupplierPage.parse(d),
     ),
-    { items: [], nextCursor: null },
+    { items: [], total: 0, page: 1, limit: 20 },
   );
   return page.items.map((s) => ({
     value: s.id,
@@ -93,7 +99,7 @@ export async function findParts(q: string): Promise<PartRef[]> {
       `/inventory/items${toQuery({ q: query.data, limit: 20, status: 'ACTIVE' })}`,
       (d) => ItemPage.parse(d),
     ),
-    { items: [], nextCursor: null },
+    { items: [], total: 0, page: 1, limit: 20 },
   );
   return page.items.map((i) => ({
     id: i.id,
@@ -361,18 +367,18 @@ export async function refreshDiscrepancy(id: string): Promise<void> {
 
 export async function loadMovements(
   itemId: string,
-  cursor: string,
+  page: number,
 ): Promise<MovementsResult> {
-  if (!isUuid(itemId) || !z.string().max(200).safeParse(cursor).success)
-    return { rows: [], nextCursor: null, error: 'Could not load more.' };
+  if (!isUuid(itemId) || !z.int().min(1).max(100_000).safeParse(page).success)
+    return { rows: [], total: 0, error: 'Could not load more.' };
   try {
-    const page = await api.request(
-      `/inventory/items/${itemId}/movements${toQuery({ cursor, limit: 20 })}`,
+    const result = await api.request(
+      `/inventory/items/${itemId}/movements${toQuery({ page, limit: MOVEMENTS_PER_PAGE })}`,
       (d) => MovementPage.parse(d),
     );
-    return { rows: page.items, nextCursor: page.nextCursor };
+    return { rows: result.items, total: result.total };
   } catch (error) {
     if (!(error instanceof ApiError)) throw error;
-    return { rows: [], nextCursor: cursor, error: 'Could not load more.' };
+    return { rows: [], total: 0, error: 'Could not load more.' };
   }
 }

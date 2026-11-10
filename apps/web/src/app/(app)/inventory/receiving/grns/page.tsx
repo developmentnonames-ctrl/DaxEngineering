@@ -14,13 +14,13 @@ import {
   Empty,
   Mono,
   PageHead,
+  Pager,
   Pill,
   SectionCard,
 } from '@dax/web-shell';
 import { LinkButton } from '../../../../../components/links';
 import { ListFilters } from '../../../../../components/list-filters';
-import { Pager } from '../../../../../components/pager';
-import { formatDateTime } from '../../../../../lib/format';
+import { formatCount, formatDateTime } from '../../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../../lib/query';
 import { requirePermission } from '../../../../../lib/server';
 import { listGrns } from '../_lib/data';
@@ -55,7 +55,7 @@ export default async function GrnListPage({
       <SectionCard
         flush
         title="GRNs"
-        note={`${page.items.length}${page.nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <ListFilters
             searchPlaceholder="GRN number, supplier or delivery note"
@@ -162,8 +162,14 @@ export default async function GrnListPage({
             </Box>
           </>
         )}
+        <Pager
+          path={`${BASE}/grns`}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager path={`${BASE}/grns`} query={query} nextCursor={page.nextCursor} />
     </>
   );
 }

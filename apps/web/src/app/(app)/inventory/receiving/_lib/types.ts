@@ -25,8 +25,12 @@ export type BinLookup =
   | { type: 'none' }
   | { type: 'error'; message: string };
 
+/** Movements per "Load more" step on an item's page. */
+export const MOVEMENTS_PER_PAGE = 20;
+
 export interface MovementsResult {
   rows: MovementRow[];
-  nextCursor: string | null;
+  /** Movements across all pages, so the list knows when to stop. */
+  total: number;
   error?: string;
 }

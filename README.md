@@ -28,12 +28,14 @@ tools/scripts/   prisma-lint, copy-lint
 
 ## Getting started
 
-Requirements: Node 24, pnpm 11, Docker.
+Requirements: Node 24, pnpm 11, PostgreSQL 18 installed on your PC (Docker only for the optional MinIO file storage).
 
 ```sh
 pnpm install
 cp .env.example .env        # local development values only
-pnpm db:up                  # Postgres 18 on 127.0.0.1:55432 with DAX roles
+pnpm db:native:setup        # once: DAX roles and databases (asks for the postgres password)
+pnpm db:deploy              # migrations
+pnpm db:up                  # checks Postgres is reachable on localhost:5432
 pnpm dev:api                # http://127.0.0.1:3100/api/health/ready
 pnpm dev:web                # http://localhost:4200
 pnpm dev:admin              # http://localhost:4300

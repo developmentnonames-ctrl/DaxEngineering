@@ -30,6 +30,7 @@
     ]
   },
   "dependencies": {
+    "@dax/contracts": "workspace:*",
     "@dax/platform-contract": "workspace:*",
     "@mantine/core": "9.7.5",
     "@mantine/hooks": "9.7.5",

@@ -317,7 +317,7 @@ export default async function HomePage() {
           ) : null}
           {glance.length ? (
             <SectionCard title="Store at a glance" note="Active records">
-              <Facts items={glance} />
+              <Facts items={glance} big />
             </SectionCard>
           ) : null}
         </div>

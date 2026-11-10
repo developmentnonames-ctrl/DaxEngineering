@@ -2,67 +2,81 @@
 
 import { Anchor, Table, TextInput } from '@mantine/core';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
-import { type AdminUser, SEEDED_ROLES } from '@dax/platform-contract';
+import type { ReactNode } from 'react';
+import {
+  type AdminUser,
+  SEEDED_ROLES,
+  type UserStatusFilter,
+} from '@dax/platform-contract';
 import { Empty, Icon, Mono, Pill, SectionCard } from '@dax/web-shell';
-import { STATUS_TONES, type UserStatus, userStatus } from '../../../lib/format';
+import { STATUS_TONES, userStatus } from '../../../lib/format';
 
 const SUPER_ADMIN = SEEDED_ROLES.super_admin.name;
 const isSuperRole = (r: { isSuperAdmin: boolean }) => r.isSuperAdmin;
-const FILTERS: { value: UserStatus | 'all'; label: string }[] = [
+const FILTERS: { value: UserStatusFilter; label: string }[] = [
   { value: 'all', label: 'All' },
-  { value: 'Active', label: 'Active' },
-  { value: 'Invited', label: 'Awaiting password' },
-  { value: 'Locked', label: 'Locked' },
-  { value: 'Deactivated', label: 'Deactivated' },
+  { value: 'active', label: 'Active' },
+  { value: 'invited', label: 'Awaiting password' },
+  { value: 'locked', label: 'Locked' },
+  { value: 'deactivated', label: 'Deactivated' },
 ];
 
-function matches(user: AdminUser, query: string): boolean {
-  const q = query.trim().toLowerCase();
-  if (!q) return true;
-  return [user.name, user.username ?? '', user.email ?? ''].some((v) =>
-    v.toLowerCase().includes(q),
-  );
+/** Search and status live in the URL, so they apply across every page. */
+function filterHref(q: string | undefined, status: UserStatusFilter): string {
+  const params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (status !== 'all') params.set('status', status);
+  const text = params.toString();
+  return text ? `/users?${text}` : '/users';
 }
 
-export function UsersTable({ users }: { users: AdminUser[] }) {
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<UserStatus | 'all'>('all');
-  const shown = useMemo(
-    () =>
-      users.filter(
-        (u) =>
-          matches(u, query) && (filter === 'all' || userStatus(u) === filter),
-      ),
-    [users, query, filter],
-  );
+export function UsersTable({
+  users,
+  total,
+  q,
+  status,
+  pager,
+}: {
+  users: AdminUser[];
+  total: number;
+  q?: string;
+  status: UserStatusFilter;
+  /** Numbered pages, rendered by the server page. */
+  pager: ReactNode;
+}) {
+  const shown = users;
 
   return (
     <SectionCard
       flush
       title="People"
-      note={`${shown.length} of ${users.length} shown`}
+      note={`${total} ${total === 1 ? 'person' : 'people'}`}
       toolbar={
         <>
-          <TextInput
-            placeholder="Search by name, username or email"
-            aria-label="Search users"
-            value={query}
-            onChange={(e) => setQuery(e.currentTarget.value)}
-            radius="xl"
-            leftSection={<Icon name="search" size={18} />}
-            maw={460}
-          />
+          <form method="get" action="/users" role="search">
+            {status !== 'all' ? (
+              <input type="hidden" name="status" value={status} />
+            ) : null}
+            <TextInput
+              name="q"
+              type="search"
+              placeholder="Search by name, username or email"
+              aria-label="Search users"
+              defaultValue={q ?? ''}
+              radius="xl"
+              leftSection={<Icon name="search" size={18} />}
+              maw={460}
+            />
+          </form>
           <div className="dax-chips" role="group" aria-label="Status">
             {FILTERS.map((f) => (
-              <button
+              <Link
                 key={f.value}
-                type="button"
-                aria-pressed={filter === f.value}
-                onClick={() => setFilter(f.value)}
+                href={filterHref(q, f.value)}
+                aria-current={status === f.value ? 'true' : undefined}
               >
                 {f.label}
-              </button>
+              </Link>
             ))}
           </div>
         </>
@@ -144,6 +158,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
           </Table>
         </Table.ScrollContainer>
       )}
+      {pager}
     </SectionCard>
   );
 }

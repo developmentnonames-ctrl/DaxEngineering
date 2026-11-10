@@ -6,11 +6,8 @@ import {
   type FieldInfo,
   normalizeFieldGrants,
 } from '../admin/common';
-import {
-  decodeCursor,
-  encodeCursor,
-  visibleValues,
-} from '../admin/audit.controller';
+import { visibleValues } from '../admin/audit.controller';
+import { userListWhere } from '../admin/users.controller';
 import {
   changedFields,
   REDACTED,
@@ -476,11 +473,38 @@ describe('audit helpers', () => {
     expect(visibleValues({ name: 'n' }, null)).toEqual({ name: 'n' });
   });
 
-  it('round-trips cursors', () => {
-    const at = new Date('2026-11-10T08:00:00.123Z');
-    expect(decodeCursor(encodeCursor(at, 'abc'))).toEqual({
-      occurredAt: at,
-      id: 'abc',
+  it('turns the users list status filter into a query', () => {
+    const now = new Date('2026-11-10T08:00:00.000Z');
+    const where = (status: Parameters<typeof userListWhere>[0]['status']) =>
+      userListWhere({ status }, { username: true, email: true }, now);
+    expect(where('all')).toEqual({});
+    expect(where('deactivated')).toEqual({ active: false });
+    expect(where('locked')).toEqual({ active: true, lockedUntil: { gt: now } });
+    expect(where('active')).toMatchObject({
+      active: true,
+      accounts: { some: { providerId: 'credential', password: { not: null } } },
     });
+    expect(where('invited')).toMatchObject({
+      active: true,
+      accounts: { none: { providerId: 'credential', password: { not: null } } },
+    });
+  });
+
+  it('searches only the user fields the viewer can read', () => {
+    const now = new Date();
+    const fields = (w: ReturnType<typeof userListWhere>) =>
+      (w.OR ?? []).map((c) => Object.keys(c)[0]);
+    expect(
+      fields(
+        userListWhere(
+          { status: 'all', q: 'ann' },
+          { username: true, email: true },
+          now,
+        ),
+      ),
+    ).toEqual(['name', 'username', 'email']);
+    expect(fields(userListWhere({ status: 'all', q: 'ann' }, {}, now))).toEqual(
+      ['name'],
+    );
   });
 });

@@ -15,6 +15,7 @@ import {
 import { load, optional, unlessForbidden } from '../../../../../lib/load';
 import { type Query, readQuery, toQuery } from '../../../../../lib/query';
 import { api } from '../../../../../lib/server';
+import { MOVEMENTS_PER_PAGE } from './types';
 
 export const DISCREPANCY_ENTITY = 'inventory.discrepancy';
 
@@ -79,9 +80,9 @@ export function listPhotos(discrepancyId: string) {
   );
 }
 
-export function listMovements(itemId: string, cursor?: string) {
+export function listMovements(itemId: string, page = 1) {
   return api.request(
-    `/inventory/items/${itemId}/movements${toQuery({ cursor, limit: 20 })}`,
+    `/inventory/items/${itemId}/movements${toQuery({ page, limit: MOVEMENTS_PER_PAGE })}`,
     (d) => MovementPage.parse(d),
   );
 }

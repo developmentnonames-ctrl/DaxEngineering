@@ -3,7 +3,6 @@ import '@dax/web-shell/styles.css';
 import './global.css';
 import { mantineHtmlProps } from '@mantine/core';
 import { headers } from 'next/headers';
-import Script from 'next/script';
 import { THEME_SCRIPT } from '@dax/web-shell/server';
 import { DaxProvider } from '@dax/web-shell';
 import { fontVariables } from '@dax/web-shell/fonts';
@@ -31,13 +30,16 @@ export default async function RootLayout({
   return (
     <html lang="en" className={fontVariables} {...mantineHtmlProps}>
       <head>
-        <Script
+        {/* Sets light/dark before first paint. A plain server-rendered tag:
+            next/script also renders it on the client, where React warns that
+            it never runs. THEME_SCRIPT is a fixed string, not user input.
+            Browsers hide the nonce after load, hence suppressHydrationWarning. */}
+        <script
           id="dax-theme"
-          strategy="beforeInteractive"
           nonce={(await headers()).get('x-nonce') ?? undefined}
-        >
-          {THEME_SCRIPT}
-        </Script>
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }}
+        />
       </head>
       <body>
         <DaxProvider>{children}</DaxProvider>

@@ -615,6 +615,9 @@ importers:
 
   libs/web-platform/shell:
     dependencies:
+      '@dax/contracts':
+        specifier: workspace:*
+        version: link:../../shared/contracts
       '@dax/platform-contract':
         specifier: workspace:*
         version: link:../../platform/contract

@@ -1,10 +1,5 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Query,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Query, Req } from '@nestjs/common';
+import { pageMeta, pageWindow } from '@dax/contracts';
 import {
   type AuditEntry,
   type AuditPage,
@@ -16,25 +11,6 @@ import { AuditService } from '../audit/audit.service';
 import type { DaxRequest } from '../auth/internal-caller';
 import { AppOnly, Requires, sessionOf } from '../auth/session.guard';
 import { parse } from './common';
-
-export function encodeCursor(occurredAt: Date, id: string): string {
-  return Buffer.from(`${occurredAt.toISOString()}|${id}`).toString('base64url');
-}
-
-export function decodeCursor(cursor: string): { occurredAt: Date; id: string } {
-  const [iso, id] = Buffer.from(cursor, 'base64url')
-    .toString('utf8')
-    .split('|');
-  const occurredAt = new Date(iso ?? '');
-  if (!id || Number.isNaN(occurredAt.getTime())) {
-    throw new BadRequestException({
-      code: 'INVALID_INPUT',
-      message: 'Bad cursor.',
-      fields: ['cursor'],
-    });
-  }
-  return { occurredAt, id };
-}
 
 export function visibleValues(
   values: unknown,
@@ -86,22 +62,17 @@ export class AdminAuditController {
           }
         : {}),
     };
-    if (q.cursor) {
-      const c = decodeCursor(q.cursor);
-      where.OR = [
-        { occurredAt: { lt: c.occurredAt } },
-        { occurredAt: c.occurredAt, id: { lt: c.id } },
-      ];
-    }
-    const rows = await this.prisma.auditLog.findMany({
-      where,
-      orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
-      take: q.limit + 1,
-    });
-    const page = rows.slice(0, q.limit);
-    const last = page[page.length - 1];
+    const [rows, total] = await Promise.all([
+      this.prisma.auditLog.findMany({
+        where,
+        orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(q),
+      }),
+      this.prisma.auditLog.count({ where }),
+    ]);
     return {
-      entries: page.map((r): AuditEntry => {
+      ...pageMeta(q, total),
+      entries: rows.map((r): AuditEntry => {
         const allowed = this.allowed(policy, r.entityKey);
         return {
           id: r.id,
@@ -122,10 +93,6 @@ export class AdminAuditController {
           restricted: r.restricted,
         };
       }),
-      nextCursor:
-        rows.length > q.limit && last
-          ? encodeCursor(last.occurredAt, last.id)
-          : null,
     };
   }
 }

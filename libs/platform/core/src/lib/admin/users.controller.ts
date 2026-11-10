@@ -12,12 +12,15 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Req,
 } from '@nestjs/common';
+import { pageMeta, pageWindow } from '@dax/contracts';
 import {
   type AdminUser,
   type AdminUserDetail,
   type AdminUserList,
+  AdminUserQuery,
   CreateUserInput,
   type EffectiveAccess,
   OverrideInput,
@@ -107,6 +110,52 @@ function toAdminUser(policy: Policy, row: Loaded, now = new Date()): AdminUser {
   };
 }
 
+const HAS_PASSWORD = {
+  providerId: 'credential',
+  password: { not: null },
+} satisfies Prisma.AccountWhereInput;
+
+/**
+ * The users list filters, matching the statuses the admin app shows:
+ * Deactivated, Locked, Awaiting password (invited) and Active. Search covers
+ * the name, plus username and email only when the viewer can read them.
+ */
+export function userListWhere(
+  query: Pick<AdminUserQuery, 'status' | 'q'>,
+  readable: { username?: unknown; email?: unknown },
+  now: Date,
+): Prisma.UserWhereInput {
+  const notLocked: Prisma.UserWhereInput = {
+    OR: [{ lockedUntil: null }, { lockedUntil: { lte: now } }],
+  };
+  const status: Record<AdminUserQuery['status'], Prisma.UserWhereInput> = {
+    all: {},
+    deactivated: { active: false },
+    locked: { active: true, lockedUntil: { gt: now } },
+    invited: {
+      active: true,
+      AND: [notLocked],
+      accounts: { none: HAS_PASSWORD },
+    },
+    active: {
+      active: true,
+      AND: [notLocked],
+      accounts: { some: HAS_PASSWORD },
+    },
+  };
+  const where: Prisma.UserWhereInput = { ...status[query.status] };
+  const q = query.q?.trim();
+  if (q) {
+    const contains = { contains: q, mode: 'insensitive' } as const;
+    where.OR = [
+      { name: contains },
+      ...(readable.username ? [{ username: contains }] : []),
+      ...(readable.email ? [{ email: contains }] : []),
+    ];
+  }
+  return where;
+}
+
 function adminOnly(policy: Policy): boolean {
   const keys = [...policy.permissions.keys()];
   return (
@@ -189,14 +238,31 @@ export class AdminUsersController {
 
   @Get()
   @Requires('core.users.view')
-  async list(@Req() req: DaxRequest): Promise<AdminUserList> {
+  async list(
+    @Req() req: DaxRequest,
+    @Query() raw: unknown,
+  ): Promise<AdminUserList> {
     const { policy } = sessionOf(req);
-    const rows = (await this.prisma.user.findMany({
-      where: inScope(policy, 'core.users.view'),
-      select: moduleSelect(policy),
-      orderBy: { name: 'asc' },
-    })) as unknown as Loaded[];
-    return { users: rows.map((r) => toAdminUser(policy, r)) };
+    const query = parse(AdminUserQuery, raw);
+    const where: Prisma.UserWhereInput = {
+      AND: [
+        inScope(policy, 'core.users.view'),
+        userListWhere(query, buildSelect(userEntity, policy), new Date()),
+      ],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        select: moduleSelect(policy),
+        orderBy: [{ name: 'asc' }, { id: 'asc' }],
+        ...pageWindow(query),
+      }) as unknown as Promise<Loaded[]>,
+      this.prisma.user.count({ where }),
+    ]);
+    return {
+      users: rows.map((r) => toAdminUser(policy, r)),
+      ...pageMeta(query, total),
+    };
   }
 
   @Get(':id')

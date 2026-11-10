@@ -39,7 +39,7 @@ export async function loadEnabledModules(
   } catch {
     const { hostname, port } = new URL(databaseUrl);
     throw new Error(
-      `Cannot reach the database at ${hostname}:${port || 5432}. Is Postgres running? (locally: pnpm db:up)`,
+      `Cannot reach the database at ${hostname}:${port || 5432}. Is Postgres running? (locally: start the postgresql-x64-18 service, then pnpm db:up)`,
     );
   }
   try {
