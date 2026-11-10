@@ -61,15 +61,17 @@ export default async function AdminHome() {
       title: 'Add a user',
       sub: 'They get an email to set their password.',
       icon: 'user-plus',
-      tint: 'orange',
+      use: 'sometimes',
     });
   if (canUsers)
     tiles.push({
       href: '/users',
       title: 'Manage users',
-      sub: 'Roles, departments, locks and two-step sign-in.',
+      sub: summary?.locked
+        ? `${count.format(summary.locked)} locked out. Roles, departments and sign-in.`
+        : 'Roles, departments, locks and two-step sign-in.',
       icon: 'users',
-      tint: 'blue',
+      use: 'often',
     });
   if (can('core.roles.view'))
     tiles.push({
@@ -77,7 +79,7 @@ export default async function AdminHome() {
       title: 'Set role access',
       sub: 'What each role can see and change.',
       icon: 'key',
-      tint: 'gray',
+      use: 'rarely',
     });
   if (canAudit)
     tiles.push({
@@ -85,7 +87,7 @@ export default async function AdminHome() {
       title: 'Review changes',
       sub: 'Who changed what, and when.',
       icon: 'history',
-      tint: 'gray',
+      use: 'often',
     });
   if (can('core.modules.view'))
     tiles.push({
@@ -93,7 +95,7 @@ export default async function AdminHome() {
       title: 'Switch modules',
       sub: 'Turn parts of the system on or off.',
       icon: 'puzzle',
-      tint: 'gray',
+      use: 'rarely',
     });
   if (can('core.numbering.view'))
     tiles.push({
@@ -101,7 +103,7 @@ export default async function AdminHome() {
       title: 'Set numbering',
       sub: 'Prefixes and next numbers for records.',
       icon: 'hash',
-      tint: 'gray',
+      use: 'rarely',
     });
   if (can('core.departments.view'))
     tiles.push({
@@ -109,7 +111,7 @@ export default async function AdminHome() {
       title: 'Edit departments',
       sub: 'Groups that limit what people see.',
       icon: 'hierarchy',
-      tint: 'gray',
+      use: 'rarely',
     });
 
   const attention = (users?.users ?? [])

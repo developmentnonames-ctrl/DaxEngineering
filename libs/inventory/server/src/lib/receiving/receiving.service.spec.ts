@@ -20,6 +20,7 @@ const ITEM = '0190a000-0000-7000-8000-000000000101';
 const BIN = '0190a000-0000-7000-8000-000000000401';
 const RCV = '0190a000-0000-7000-8000-000000000402';
 const QUA = '0190a000-0000-7000-8000-000000000403';
+const WTY = '0190a000-0000-7000-8000-000000000404';
 
 const policy = fakePolicy(['inventory.grn.check', 'inventory.grn.post']);
 
@@ -38,6 +39,7 @@ const codeOf = (error: HttpException) =>
 const specialBinRows = async () => [
   { id: RCV, code: 'X-00-00-RCV' },
   { id: QUA, code: 'X-00-00-QUA' },
+  { id: WTY, code: 'X-00-00-WTY' },
 ];
 
 interface FakeOptions {

@@ -38,6 +38,10 @@ Three goals drive the design:
 | Master data      | Brands and machine models are managed lists; every item has a brand · superseded parts show "replaced by" and old stock can still be issued · customer/supplier codes auto-numbered (CUS-0001, SUP-0001) · CSV import for items, customers, suppliers (dry run, all-or-nothing) · no item photos yet                                                                                                                                                                                                                    |
 | Receiving        | No expected arrivals: every delivery is received on a GRN against a supplier, and each line has an optional delivery-note quantity used for short/excess reports · damaged goods received into quarantine · over-receipt allowed and flagged as excess · stock is free only after put-away · one person may check and post · GRN/FOR vs GRN/LOC from the supplier, editable · no back-dating (delivery date kept as information) · a posted GRN can be reversed by the Stores Manager only while its stock is untouched |
 | Issuing          | MRN check reserves the free stock and the rest waits; only the Stores Manager assigns new stock to waiting MRNs (nothing automatic) · holds have no expiry and convert to an MRN only as a whole · scanning while picking is optional · an AOD is complete only once the signed copy is uploaded · printable AOD on A4                                                                                                                                                                                                  |
+| Returns          | Against an issued AOD (qty up to issued minus already returned) or a free return with a reason · the Stores Keeper picks per line: good to a storage bin, damaged to quarantine, faulty opens a warranty tag and adds no stock                                                                                                                                                                                                                                                                                          |
+| Counts           | Blind or not chosen per count · counted bins are frozen until the count is posted or cancelled · the Stores Manager approves differences and cannot approve a count they counted or submitted · opening counts run zone by zone, once per bin                                                                                                                                                                                                                                                                           |
+| Warranty bin     | Tags are custody only and never change stock · Tagged → Sent to supplier → Closed with an outcome                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Reports          | Below minimum, stock movements, stock by bin (printable), slow-moving · quantities only · CSV export needs the export permission                                                                                                                                                                                                                                                                                                                                                                                        |
 
 ## Topology
 
@@ -221,16 +225,16 @@ audit viewer and exports run through the same projection.
   - Reservations are one mechanism for holds, MRNs and future sales orders.
   - Numbers are assigned on post, never at draft.
 
-| Document                           | Flow                                                       | Stock effect                                        |
-| ---------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
-| GRN (FOR, LOC)                     | Draft → Checked → Posted → Put away                        | receive into receiving bin, then move to target bin |
-| Discrepancy                        | Open → Closed                                              | damaged quantity to quarantine                      |
-| MRN (PRT, SRV, SAL)                | Draft → Submitted → Checked → Ready → Issued → Closed      | reserve                                             |
-| AOD (SER, REP, INS, BRK, DIR, HIR) | Picking → Issued → Signed                                  | consume reservation, issue                          |
-| Hold                               | Active → Converted / Released / Expired                    | hold / release                                      |
-| Return note                        | Draft → Posted                                             | back to a bin, or quarantine if damaged             |
-| Stock count (cycle, full, opening) | Counting → Submitted → Approved by Stores Manager → Posted | adjust                                              |
-| Warranty tag                       | Tagged → Sent / Returned / Scrapped → Closed               | none (custody only)                                 |
+| Document                           | Flow                                                     | Stock effect                                         |
+| ---------------------------------- | -------------------------------------------------------- | ---------------------------------------------------- |
+| GRN (FOR, LOC)                     | Draft → Checked → Posted → Put away                      | receive into receiving bin, then move to target bin  |
+| Discrepancy                        | Open → Closed                                            | damaged quantity to quarantine                       |
+| MRN (PRT, SRV, SAL)                | Draft → Submitted → Checked → Ready → Issued → Closed    | reserve                                              |
+| AOD (SER, REP, INS, BRK, DIR, HIR) | Picking → Issued → Signed                                | consume reservation, issue                           |
+| Hold                               | Active → Converted / Released                            | hold / release                                       |
+| Return note                        | Draft → Posted                                           | back to a bin, quarantine if damaged, none if faulty |
+| Stock count (cycle, full, opening) | Counting → Submitted → Posted on Stores Manager approval | adjust; counted bins frozen while open               |
+| Warranty tag                       | Tagged → Sent → Closed (outcome)                         | none (custody only)                                  |
 
 **Seeded roles:** Super Admin, Stores Manager, Stores Keeper, Stock Viewer. In phase 1 other
 departments are read-only viewers.
@@ -255,7 +259,7 @@ departments are read-only viewers.
 | M3  | Parties, items, bins, QR labels, stock views, scanner, PWA                                                     | built  |
 | M4  | Stock engine, receiving, GRN, put-away                                                                         | built  |
 | M5  | MRN, AOD, holds                                                                                                | built  |
-| M6  | Returns, counts, warranty bin, reports                                                                         |        |
+| M6  | Returns, counts, warranty bin, reports                                                                         | built  |
 | M7  | Hardening, backup drill, UAT, go-live                                                                          |        |
 
 ## Open points to confirm with DAX

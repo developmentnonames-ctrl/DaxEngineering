@@ -4,7 +4,7 @@ import { createApi } from '@dax/web-data-access/server';
 import { canDo } from '@dax/web-shell';
 
 export const APP = 'admin' as const;
-export const PRODUCT = 'DAX Admin';
+export const PRODUCT = 'DAX Engineering - Admin';
 export const api = createApi(APP);
 
 export async function requireUser() {

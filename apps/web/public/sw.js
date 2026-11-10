@@ -1,5 +1,5 @@
 // Caches static assets only. Pages, API calls, route handlers and /files are never stored.
-const VERSION = 'v1';
+const VERSION = 'v3';
 const CACHE = `dax-static-${VERSION}`;
 const OFFLINE_URL = '/offline.html';
 const PRECACHE = [

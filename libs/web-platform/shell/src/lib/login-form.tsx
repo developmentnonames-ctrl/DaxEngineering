@@ -69,8 +69,8 @@ export function LoginForm({ next }: { next?: string }) {
   if (step !== 'password') {
     return (
       <form onSubmit={verify}>
-        <Stack>
-          <Text size="sm">
+        <Stack gap="lg">
+          <Text size="sm" c="dimmed">
             {step === 'totp'
               ? 'Enter the 6-digit code from your authenticator app.'
               : 'Enter one of your backup codes.'}
@@ -97,13 +97,20 @@ export function LoginForm({ next }: { next?: string }) {
               required
             />
           )}
-          <Button type="submit" loading={busy} disabled={!code}>
+          <Button
+            type="submit"
+            size="md"
+            mt={4}
+            loading={busy}
+            disabled={!code}
+          >
             Verify
           </Button>
           <Anchor
             component="button"
             type="button"
             size="sm"
+            ta="center"
             onClick={() => {
               setCode('');
               setError(null);

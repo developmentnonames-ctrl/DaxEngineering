@@ -112,6 +112,18 @@ const PATHS: Record<string, ReactNode> = {
       <path d="M7.5 14.5l3.5-4 3 2.5 5-6" />
     </>
   ),
+  undo: (
+    <>
+      <path d="M9 14.5L4.5 10 9 5.5" />
+      <path d="M4.5 10H15a4.5 4.5 0 0 1 0 9h-3" />
+    </>
+  ),
+  clipboard: (
+    <>
+      <rect x="5" y="4.5" width="14" height="16" rx="2.5" />
+      <path d="M9 4.5V3.5h6v1M9 11l2 2 4-4M9 16.5h6" />
+    </>
+  ),
   search: (
     <>
       <circle cx="11" cy="11" r="6.5" />

@@ -1,19 +1,19 @@
 model User {
-  id                 String      @id @default(uuid(7)) @db.Uuid
+  id                 String                   @id @default(uuid(7)) @db.Uuid
   name               String
-  email              String      @unique
-  emailVerified      Boolean     @default(false) @map("email_verified")
+  email              String                   @unique
+  emailVerified      Boolean                  @default(false) @map("email_verified")
   image              String?
-  username           String?     @unique
-  displayUsername    String?     @map("display_username")
-  twoFactorEnabled   Boolean?    @default(false) @map("two_factor_enabled")
-  isSuperAdmin       Boolean     @default(false) @map("is_super_admin")
-  active             Boolean     @default(true)
-  mustChangePassword Boolean     @default(false) @map("must_change_password")
-  failedLoginCount   Int         @default(0) @map("failed_login_count")
-  lockedUntil        DateTime?   @map("locked_until") @db.Timestamptz(3)
-  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt          DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  username           String?                  @unique
+  displayUsername    String?                  @map("display_username")
+  twoFactorEnabled   Boolean?                 @default(false) @map("two_factor_enabled")
+  isSuperAdmin       Boolean                  @default(false) @map("is_super_admin")
+  active             Boolean                  @default(true)
+  mustChangePassword Boolean                  @default(false) @map("must_change_password")
+  failedLoginCount   Int                      @default(0) @map("failed_login_count")
+  lockedUntil        DateTime?                @map("locked_until") @db.Timestamptz(3)
+  createdAt          DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
   sessions           Session[]
   accounts           Account[]
   twoFactors         TwoFactor[]

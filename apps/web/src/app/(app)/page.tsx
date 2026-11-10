@@ -102,7 +102,7 @@ export default async function HomePage() {
       title: 'Scan a label',
       sub: 'Point the camera at a bin or item label.',
       icon: 'scan',
-      tint: 'orange',
+      use: 'often',
     });
   if (canSign)
     tiles.push({
@@ -112,7 +112,7 @@ export default async function HomePage() {
         ? `${count.format(issuing.awaitingSignature)} AODs need their signed copy.`
         : 'Upload signed copies to complete AODs.',
       icon: 'send',
-      tint: issuing?.awaitingSignature ? 'red' : 'gray',
+      use: 'often',
     });
   if (canAllocate)
     tiles.push({
@@ -122,7 +122,7 @@ export default async function HomePage() {
         ? `${count.format(issuing.mrnWaiting)} requests waiting for stock.`
         : 'Assign new stock to waiting requests.',
       icon: 'history',
-      tint: issuing?.mrnWaiting ? 'orange' : 'gray',
+      use: 'often',
     });
   if (canPutAway)
     tiles.push({
@@ -132,7 +132,7 @@ export default async function HomePage() {
         ? `${count.format(receiving.awaitingPutaway)} waiting in the receiving bin.`
         : 'Move received stock to its shelf.',
       icon: 'box',
-      tint: receiving?.awaitingPutaway ? 'orange' : 'gray',
+      use: 'often',
     });
   if (can('inventory.grn.check'))
     tiles.push({
@@ -140,7 +140,49 @@ export default async function HomePage() {
       title: 'Receive a delivery',
       sub: 'Count a delivery at the dock.',
       icon: 'truck',
-      tint: 'gray',
+      use: 'often',
+    });
+  if (can('inventory.count.approve'))
+    tiles.push({
+      href: '/inventory/counts?status=SUBMITTED',
+      title: 'Approve counts',
+      sub: 'Review differences before stock changes.',
+      icon: 'clipboard',
+      use: 'sometimes',
+    });
+  else if (can('inventory.count.count'))
+    tiles.push({
+      href: '/inventory/counts',
+      title: 'Count stock',
+      sub: 'Count the bins on an open count sheet.',
+      icon: 'clipboard',
+      use: 'sometimes',
+    });
+  if (can('inventory.return_note.create'))
+    tiles.push({
+      href: '/inventory/returns/new',
+      title: 'Take back a return',
+      sub: 'Parts coming back from a job or customer.',
+      icon: 'undo',
+      use: 'sometimes',
+    });
+  if (can('inventory.warranty.tag'))
+    tiles.push({
+      href: '/inventory/warranty/new',
+      title: 'Tag a failed part',
+      sub: 'Record a part for a warranty claim.',
+      icon: 'shield',
+      use: 'sometimes',
+    });
+  if (canSeeStock)
+    tiles.push({
+      href: '/inventory/reports/below-minimum',
+      title: 'See what to reorder',
+      sub: inventory
+        ? `${count.format(inventory.belowMin)} parts below their minimum.`
+        : 'Parts below their minimum quantity.',
+      icon: 'chart',
+      use: 'sometimes',
     });
   if (canSeeItems)
     tiles.push({
@@ -148,7 +190,7 @@ export default async function HomePage() {
       title: 'Find a part',
       sub: 'Search by part number, description or barcode.',
       icon: 'search',
-      tint: 'blue',
+      use: 'often',
     });
   if (can('inventory.item.create'))
     tiles.push({
@@ -156,7 +198,7 @@ export default async function HomePage() {
       title: 'Add an item',
       sub: 'Part number, brand, unit and minimum.',
       icon: 'plus',
-      tint: 'gray',
+      use: 'rarely',
     });
   if (canSeeStock)
     tiles.push({
@@ -164,7 +206,7 @@ export default async function HomePage() {
       title: 'Check stock',
       sub: 'On hand, held and free by bin.',
       icon: 'boxes',
-      tint: 'gray',
+      use: 'often',
     });
   if (can('inventory.location.print_label'))
     tiles.push({
@@ -172,7 +214,7 @@ export default async function HomePage() {
       title: 'Print bin labels',
       sub: 'Tick bins, then print a sheet of labels.',
       icon: 'printer',
-      tint: 'gray',
+      use: 'rarely',
     });
   if (can('parties.customer.view'))
     tiles.push({
@@ -180,7 +222,7 @@ export default async function HomePage() {
       title: 'Find a customer',
       sub: 'Contacts, phone numbers and addresses.',
       icon: 'users',
-      tint: 'blue',
+      use: 'sometimes',
     });
   if (can('parties.supplier.view'))
     tiles.push({
@@ -188,7 +230,7 @@ export default async function HomePage() {
       title: 'Find a supplier',
       sub: 'Local and foreign suppliers.',
       icon: 'building',
-      tint: 'orange',
+      use: 'sometimes',
     });
 
   const glance = [

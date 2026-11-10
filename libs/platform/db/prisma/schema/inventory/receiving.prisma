@@ -5,6 +5,9 @@ enum MovementType {
   PUTAWAY_IN
   REVERSAL
   ISSUE
+  RETURN
+  COUNT_ADJUST
+  OPENING
 
   @@schema("inventory")
 }
@@ -44,23 +47,23 @@ enum DiscrepancyStatus {
 }
 
 model StockLedger {
-  id           String       @id @default(uuid(7)) @db.Uuid
-  occurredAt   DateTime     @default(now()) @map("occurred_at") @db.Timestamptz(3)
-  storeId      String       @map("store_id") @db.Uuid
-  itemId       String       @map("item_id") @db.Uuid
-  item         Item         @relation(fields: [itemId], references: [id])
-  binId        String       @map("bin_id") @db.Uuid
-  bin          Bin          @relation(fields: [binId], references: [id])
-  qty          Decimal      @db.Decimal(14, 3)
-  binQtyAfter  Decimal      @map("bin_qty_after") @db.Decimal(14, 3)
-  movement     MovementType
-  docType      String       @map("doc_type")
-  docId        String       @map("doc_id") @db.Uuid
-  docLineId    String?      @map("doc_line_id") @db.Uuid
-  docNumber    String?      @map("doc_number")
-  reversalOf   String?      @map("reversal_of") @db.Uuid
-  actorId      String       @map("actor_id") @db.Uuid
-  requestId    String?      @map("request_id")
+  id          String       @id @default(uuid(7)) @db.Uuid
+  occurredAt  DateTime     @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  storeId     String       @map("store_id") @db.Uuid
+  itemId      String       @map("item_id") @db.Uuid
+  item        Item         @relation(fields: [itemId], references: [id])
+  binId       String       @map("bin_id") @db.Uuid
+  bin         Bin          @relation(fields: [binId], references: [id])
+  qty         Decimal      @db.Decimal(14, 3)
+  binQtyAfter Decimal      @map("bin_qty_after") @db.Decimal(14, 3)
+  movement    MovementType
+  docType     String       @map("doc_type")
+  docId       String       @map("doc_id") @db.Uuid
+  docLineId   String?      @map("doc_line_id") @db.Uuid
+  docNumber   String?      @map("doc_number")
+  reversalOf  String?      @map("reversal_of") @db.Uuid
+  actorId     String       @map("actor_id") @db.Uuid
+  requestId   String?      @map("request_id")
 
   @@index([itemId, occurredAt])
   @@index([binId, occurredAt])
@@ -70,27 +73,27 @@ model StockLedger {
 }
 
 model Grn {
-  id            String          @id @default(uuid(7)) @db.Uuid
-  number        String?         @unique
+  id            String        @id @default(uuid(7)) @db.Uuid
+  number        String?       @unique
   subtype       GrnSubtype
-  status        GrnStatus       @default(DRAFT)
-  supplierId    String          @map("supplier_id") @db.Uuid
-  supplierName  String          @map("supplier_name")
-  deliveryNote  String?         @map("delivery_note")
-  deliveryDate  DateTime?       @map("delivery_date") @db.Date
+  status        GrnStatus     @default(DRAFT)
+  supplierId    String        @map("supplier_id") @db.Uuid
+  supplierName  String        @map("supplier_name")
+  deliveryNote  String?       @map("delivery_note")
+  deliveryDate  DateTime?     @map("delivery_date") @db.Date
   notes         String?
-  checkedBy     String?         @map("checked_by") @db.Uuid
-  checkedAt     DateTime?       @map("checked_at") @db.Timestamptz(3)
-  postedBy      String?         @map("posted_by") @db.Uuid
-  postedAt      DateTime?       @map("posted_at") @db.Timestamptz(3)
-  reversedBy    String?         @map("reversed_by") @db.Uuid
-  reversedAt    DateTime?       @map("reversed_at") @db.Timestamptz(3)
-  reverseReason String?         @map("reverse_reason")
-  version       Int             @default(1)
-  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
-  createdBy     String          @map("created_by") @db.Uuid
-  updatedAt     DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
-  updatedBy     String          @map("updated_by") @db.Uuid
+  checkedBy     String?       @map("checked_by") @db.Uuid
+  checkedAt     DateTime?     @map("checked_at") @db.Timestamptz(3)
+  postedBy      String?       @map("posted_by") @db.Uuid
+  postedAt      DateTime?     @map("posted_at") @db.Timestamptz(3)
+  reversedBy    String?       @map("reversed_by") @db.Uuid
+  reversedAt    DateTime?     @map("reversed_at") @db.Timestamptz(3)
+  reverseReason String?       @map("reverse_reason")
+  version       Int           @default(1)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdBy     String        @map("created_by") @db.Uuid
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedBy     String        @map("updated_by") @db.Uuid
   lines         GrnLine[]
   discrepancies Discrepancy[]
 

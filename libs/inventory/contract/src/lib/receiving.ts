@@ -36,6 +36,9 @@ export const MOVEMENT_TYPES = [
   'PUTAWAY_IN',
   'REVERSAL',
   'ISSUE',
+  'RETURN',
+  'COUNT_ADJUST',
+  'OPENING',
 ] as const;
 
 export const GrnCreate = z.strictObject({

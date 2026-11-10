@@ -10,6 +10,9 @@ type DiscrepancyField = keyof typeof Prisma.DiscrepancyScalarFieldEnum;
 type HoldField = keyof typeof Prisma.HoldScalarFieldEnum;
 type MrnField = keyof typeof Prisma.MrnScalarFieldEnum;
 type AodField = keyof typeof Prisma.AodScalarFieldEnum;
+type ReturnNoteField = keyof typeof Prisma.ReturnNoteScalarFieldEnum;
+type StockCountField = keyof typeof Prisma.StockCountScalarFieldEnum;
+type WarrantyTagField = keyof typeof Prisma.WarrantyTagScalarFieldEnum;
 
 export const itemEntity = defineEntity<ItemField>({
   key: 'inventory.item',
@@ -116,6 +119,8 @@ export const binEntity = defineEntity<BinField>({
     qrToken: { label: 'QR token', tier: 'INTERNAL' },
     active: { label: 'Active', tier: 'INTERNAL', locked: true, writable: true },
     notes: { label: 'Notes', tier: 'INTERNAL', writable: true },
+    countId: { label: 'Being counted', tier: 'INTERNAL', locked: true },
+    openedAt: { label: 'Opening count done', tier: 'INTERNAL', locked: true },
     version: { label: 'Version', tier: 'INTERNAL', locked: true },
     createdAt: { label: 'Created', tier: 'INTERNAL', locked: true },
     createdBy: { label: 'Created by', tier: 'INTERNAL' },
@@ -303,6 +308,100 @@ export const aodEntity = defineEntity<AodField>({
   },
 });
 
+export const returnNoteEntity = defineEntity<ReturnNoteField>({
+  key: 'inventory.return_note',
+  moduleKey: 'inventory',
+  label: 'Return notes',
+  table: 'inventory.return_note',
+  fields: {
+    id: shown('ID'),
+    number: { ...shown('Return number'), filterable: true, sortable: true },
+    status: { ...shown('Status'), filterable: true },
+    aodId: shown('AOD'),
+    departmentId: { ...shown('Department'), writable: true, filterable: true },
+    departmentName: shown('Department name'),
+    customerId: { ...confidential('Customer'), writable: true },
+    customerName: { ...confidential('Customer name'), filterable: true },
+    jobNumber: { ...shown('Job number'), writable: true, filterable: true },
+    reason: { ...shown('Reason'), writable: true },
+    notes: { ...shown('Notes'), writable: true },
+    postedBy: shown('Posted by'),
+    postedAt: { ...shown('Posted'), sortable: true },
+    version: shown('Version'),
+    createdAt: { ...shown('Created'), sortable: true },
+    createdBy: { label: 'Created by', tier: 'INTERNAL' },
+    updatedAt: shown('Updated'),
+    updatedBy: { label: 'Updated by', tier: 'INTERNAL' },
+  },
+});
+
+export const stockCountEntity = defineEntity<StockCountField>({
+  key: 'inventory.stock_count',
+  moduleKey: 'inventory',
+  label: 'Stock counts',
+  table: 'inventory.stock_count',
+  fields: {
+    id: shown('ID'),
+    number: { ...shown('Count number'), filterable: true, sortable: true },
+    kind: { ...shown('Kind'), filterable: true },
+    status: { ...shown('Status'), filterable: true },
+    blind: shown('Blind count'),
+    notes: { ...shown('Notes'), writable: true },
+    submittedBy: shown('Submitted by'),
+    submittedAt: shown('Submitted'),
+    rejectReason: shown('Reason for recount'),
+    rejectedBy: shown('Sent back by'),
+    rejectedAt: shown('Sent back'),
+    approvedBy: shown('Approved by'),
+    approvedAt: { ...shown('Approved'), sortable: true },
+    cancelledBy: shown('Cancelled by'),
+    cancelledAt: shown('Cancelled'),
+    cancelReason: shown('Reason for cancelling'),
+    version: shown('Version'),
+    createdAt: { ...shown('Created'), sortable: true },
+    createdBy: { label: 'Created by', tier: 'INTERNAL' },
+    updatedAt: shown('Updated'),
+    updatedBy: { label: 'Updated by', tier: 'INTERNAL' },
+  },
+});
+
+export const warrantyTagEntity = defineEntity<WarrantyTagField>({
+  key: 'inventory.warranty_tag',
+  moduleKey: 'inventory',
+  label: 'Warranty tags',
+  table: 'inventory.warranty_tag',
+  fields: {
+    id: shown('ID'),
+    number: { ...shown('Tag number'), filterable: true, sortable: true },
+    status: { ...shown('Status'), filterable: true },
+    itemId: { ...shown('Item'), writable: true, filterable: true },
+    qty: { ...shown('Quantity'), writable: true },
+    serialNo: { ...shown('Serial number'), writable: true, filterable: true },
+    machineModelId: { ...shown('Machine model'), writable: true },
+    machineSerial: { ...shown('Machine serial'), writable: true },
+    jobNumber: { ...shown('Job number'), writable: true, filterable: true },
+    customerId: { ...confidential('Customer'), writable: true },
+    customerName: { ...confidential('Customer name'), filterable: true },
+    supplierId: { ...shown('Supplier'), writable: true },
+    supplierName: { ...shown('Supplier name'), filterable: true },
+    claimNumber: { ...shown('Claim number'), writable: true, filterable: true },
+    fault: { ...shown('Fault'), writable: true },
+    binId: shown('Bin'),
+    returnLineId: shown('Return line'),
+    sentBy: shown('Sent by'),
+    sentAt: shown('Sent'),
+    outcome: { ...shown('Outcome'), filterable: true },
+    closeNote: shown('Closing note'),
+    closedBy: shown('Closed by'),
+    closedAt: shown('Closed'),
+    version: shown('Version'),
+    createdAt: { ...shown('Created'), sortable: true },
+    createdBy: { label: 'Created by', tier: 'INTERNAL' },
+    updatedAt: shown('Updated'),
+    updatedBy: { label: 'Updated by', tier: 'INTERNAL' },
+  },
+});
+
 export const INVENTORY_ENTITIES: readonly EntityDef[] = [
   itemEntity,
   binEntity,
@@ -313,4 +412,7 @@ export const INVENTORY_ENTITIES: readonly EntityDef[] = [
   holdEntity,
   mrnEntity,
   aodEntity,
+  returnNoteEntity,
+  stockCountEntity,
+  warrantyTagEntity,
 ];

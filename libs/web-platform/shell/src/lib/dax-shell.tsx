@@ -14,13 +14,18 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { authClient } from './auth-client';
 import { Icon } from './icon';
+import { DaxLogo } from './logo';
 import { clearOfflineData } from './pwa';
 
-export interface ShellNavItem {
+export interface ShellNavTab {
   key: string;
   label: string;
   path: string;
+}
+
+export interface ShellNavItem extends ShellNavTab {
   icon: string;
+  tabs?: ShellNavTab[];
 }
 
 export function initials(name: string): string {
@@ -75,16 +80,18 @@ export function DaxShell({
 }) {
   const pathname = usePathname();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const current = nav
-    .filter((n) => isActive(pathname, n.path))
-    .sort((a, b) => b.path.length - a.path.length)[0];
+  const match = nav
+    .flatMap((item) => (item.tabs ?? [item]).map((tab) => ({ item, tab })))
+    .filter(({ tab }) => isActive(pathname, tab.path))
+    .sort((a, b) => b.tab.path.length - a.tab.path.length)[0];
+  const current = match?.item;
+  const tabs = current?.tabs && current.tabs.length > 1 ? current.tabs : null;
 
   return (
     <div>
       <header className="dax-top">
         <Link href="/" className="dax-brand" aria-label="DAX Engineering home">
-          <b>dax</b>
-          <small>engineering</small>
+          <DaxLogo />
         </Link>
         <span className="dax-app-pill">{appLabel}</span>
         <div className="dax-top-actions">
@@ -158,7 +165,22 @@ export function DaxShell({
             </Link>
           ))}
         </nav>
-        <main className="dax-main">{children}</main>
+        <main className="dax-main">
+          {tabs ? (
+            <nav className="dax-tabs" aria-label={current?.label}>
+              {tabs.map((tab) => (
+                <Link
+                  key={tab.key}
+                  href={tab.path}
+                  aria-current={match?.tab.key === tab.key ? 'page' : undefined}
+                >
+                  {tab.label}
+                </Link>
+              ))}
+            </nav>
+          ) : null}
+          {children}
+        </main>
       </div>
     </div>
   );

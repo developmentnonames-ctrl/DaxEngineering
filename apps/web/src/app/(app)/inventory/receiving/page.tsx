@@ -84,23 +84,27 @@ export default async function ReceivingPage({
       title: 'Receive a delivery',
       sub: 'Pick the supplier, then scan and count what came in.',
       icon: 'truck',
-      tint: 'orange',
+      use: 'often',
     });
   if (can('inventory.grn.putaway'))
     tiles.push({
       href: `${BASE}/putaway`,
       title: 'Put away',
-      sub: 'Move received stock from the receiving bin to its shelf.',
+      sub: summary
+        ? `${count.format(summary.awaitingPutaway)} waiting in the receiving bin.`
+        : 'Move received stock from the receiving bin to its shelf.',
       icon: 'box',
-      tint: 'gray',
+      use: 'often',
     });
   if (can('inventory.discrepancy.view'))
     tiles.push({
       href: `${BASE}/discrepancies`,
       title: 'Discrepancies',
-      sub: 'Short, extra, damaged and wrong items for the supplier.',
+      sub: summary?.openDiscrepancies
+        ? `${count.format(summary.openDiscrepancies)} open. Short, extra, damaged or wrong items.`
+        : 'Short, extra, damaged and wrong items for the supplier.',
       icon: 'alert',
-      tint: 'red',
+      use: 'sometimes',
     });
 
   return (

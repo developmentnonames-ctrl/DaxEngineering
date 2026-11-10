@@ -20,6 +20,7 @@ import {
   SectionCard,
 } from '@dax/web-shell';
 import { ConfirmAction } from '../../../../../../components/confirm-action';
+import { LinkButton } from '../../../../../../components/links';
 import { formatDateTime, formatQty } from '../../../../../../lib/format';
 import { uuidParam } from '../../../../../../lib/load';
 import { requirePermission } from '../../../../../../lib/server';
@@ -151,6 +152,15 @@ export default async function AodPage({
               />
             ) : null}
             {printable ? <PrintButton id={aod.id} /> : null}
+            {printable && can('inventory.return_note.create') ? (
+              <LinkButton
+                href={`/inventory/returns/new?aod=${aod.id}`}
+                variant="default"
+                size="sm"
+              >
+                Return items
+              </LinkButton>
+            ) : null}
           </>
         }
       />

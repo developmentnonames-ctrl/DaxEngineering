@@ -28,16 +28,16 @@ import {
 import type { ReactNode } from 'react';
 
 const ink: MantineColorsTuple = [
-  '#eef1f3',
-  '#d9dfe3',
-  '#b3bec6',
-  '#8a9ba7',
-  '#66798a',
-  '#4b5f70',
-  '#344855',
-  '#253843',
-  '#1a2c35',
-  '#12232a',
+  '#eef0f8',
+  '#d8dcef',
+  '#b1b9df',
+  '#8893cc',
+  '#6672bb',
+  '#4c59ad',
+  '#3a479e',
+  '#2b3988',
+  '#202e77',
+  '#162568',
 ];
 
 const ember: MantineColorsTuple = [
@@ -124,7 +124,23 @@ export const daxTheme = createTheme({
     Textarea: Textarea.extend({ defaultProps: field }),
     Select: Select.extend({ defaultProps: field }),
     MultiSelect: MultiSelect.extend({ defaultProps: field }),
-    PinInput: PinInput.extend({ defaultProps: { radius: 'md', size: 'lg' } }),
+    // Six equal boxes across the full width, with no "○" placeholder.
+    PinInput: PinInput.extend({
+      defaultProps: { radius: 'md', size: 'lg', placeholder: '', gap: 'xs' },
+      styles: {
+        // Wrapper and box share one height so the row doesn't spill into
+        // whatever sits below it.
+        root: { width: '100%', flexWrap: 'nowrap', minHeight: 52 },
+        pinInput: { flex: 1, minWidth: 0, height: 52 },
+        input: {
+          width: '100%',
+          height: 52,
+          fontSize: 22,
+          fontWeight: 600,
+          textAlign: 'center',
+        },
+      },
+    }),
     SegmentedControl: SegmentedControl.extend({
       defaultProps: { radius: 'xl' },
     }),
