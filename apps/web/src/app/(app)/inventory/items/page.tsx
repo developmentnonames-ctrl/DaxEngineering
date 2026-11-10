@@ -15,6 +15,7 @@ import {
   Empty,
   Mono,
   PageHead,
+  Pager,
   Pill,
   SectionCard,
 } from '@dax/web-shell';
@@ -26,9 +27,8 @@ import {
 } from '../../../../components/labels';
 import { LinkButton } from '../../../../components/links';
 import { ListFilters } from '../../../../components/list-filters';
-import { Pager } from '../../../../components/pager';
 import { BelowMinBadge, StockLine } from '../../../../components/stock';
-import { formatQty } from '../../../../lib/format';
+import { formatCount, formatQty } from '../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../lib/query';
 import { requirePermission } from '../../../../lib/server';
 import { getCatalog, listItems } from '../_lib/data';
@@ -84,8 +84,7 @@ export default async function ItemsPage({
         title="Parts"
         note={
           <>
-            {page.items.length}
-            {page.nextCursor ? '+' : ''} shown
+            {formatCount(page.total)} total
             {canPrint && page.items.length ? (
               <>
                 {' · '}
@@ -216,12 +215,14 @@ export default async function ItemsPage({
             </Box>
           </>
         )}
+        <Pager
+          path={'/inventory/items'}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager
-        path="/inventory/items"
-        query={query}
-        nextCursor={page.nextCursor}
-      />
     </LabelSelection>
   );
 }

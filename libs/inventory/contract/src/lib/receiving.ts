@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { OptionalText, PageQuery, pageOf, Qty } from '@dax/contracts';
+import {
+  OptionalText,
+  PageParams,
+  PageQuery,
+  pageOf,
+  Qty,
+} from '@dax/contracts';
 
 const IsoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD');
 const ItemRef = z.object({
@@ -205,5 +211,5 @@ export const ReceivingSummary = z.object({
   openDiscrepancies: z.int(),
 });
 export type ReceivingSummary = z.infer<typeof ReceivingSummary>;
-export const MovementQuery = PageQuery.pick({ cursor: true, limit: true });
+export const MovementQuery = PageParams;
 export type MovementQuery = z.infer<typeof MovementQuery>;

@@ -218,11 +218,14 @@ export function Empty({
 
 export function Facts({
   items,
+  big,
 }: {
   items: { label: string; value: ReactNode }[];
+  /** Large numbers on soft tiles, for at-a-glance counts. */
+  big?: boolean;
 }) {
   return (
-    <dl className="dax-facts">
+    <dl className={big ? 'dax-facts big' : 'dax-facts'}>
       {items.map((f) => (
         <div key={f.label}>
           <dt>{f.label}</dt>

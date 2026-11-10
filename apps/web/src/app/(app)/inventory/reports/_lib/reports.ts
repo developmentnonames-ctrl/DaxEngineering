@@ -50,5 +50,5 @@ export function reportPath(slug: ReportSlug): string {
 }
 
 export function exportHref(slug: ReportSlug, query: Query = {}): string {
-  return `/api/reports/${slug}${toQuery({ ...query, cursor: undefined, limit: undefined })}`;
+  return `/api/reports/${slug}${toQuery({ ...query, page: undefined, limit: undefined })}`;
 }

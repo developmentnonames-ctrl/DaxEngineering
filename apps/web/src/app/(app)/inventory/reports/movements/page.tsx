@@ -19,10 +19,14 @@ import {
   Empty,
   Mono,
   PageHead,
+  Pager,
   SectionCard,
 } from '@dax/web-shell';
-import { Pager } from '../../../../../components/pager';
-import { formatDateTime, formatQty } from '../../../../../lib/format';
+import {
+  formatCount,
+  formatDateTime,
+  formatQty,
+} from '../../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../../lib/query';
 import { requirePermission } from '../../../../../lib/server';
 import { documentPath } from '../../receiving/_lib/labels';
@@ -79,7 +83,7 @@ export default async function MovementsReportPage({
       <SectionCard
         flush
         title="Movements"
-        note={`${page.items.length}${page.nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <MovementFilters
             item={
@@ -176,12 +180,14 @@ export default async function MovementsReportPage({
             </Box>
           </>
         )}
+        <Pager
+          path={reportPath('movements')}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager
-        path={reportPath('movements')}
-        query={query}
-        nextCursor={page.nextCursor}
-      />
     </>
   );
 }

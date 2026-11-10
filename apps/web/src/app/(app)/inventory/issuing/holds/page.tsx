@@ -5,12 +5,12 @@ import {
   LinkList,
   Mono,
   PageHead,
+  Pager,
   SectionCard,
 } from '@dax/web-shell';
 import { LinkButton } from '../../../../../components/links';
 import { ListFilters } from '../../../../../components/list-filters';
-import { Pager } from '../../../../../components/pager';
-import { formatDateTime } from '../../../../../lib/format';
+import { formatCount, formatDateTime } from '../../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../../lib/query';
 import { requirePermission } from '../../../../../lib/server';
 import { listHolds } from '../_lib/data';
@@ -43,7 +43,7 @@ export default async function HoldListPage({
       <SectionCard
         flush
         title="Holds"
-        note={`${page.items.length}${page.nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <ListFilters
             searchPlaceholder="Hold number or customer"
@@ -88,12 +88,14 @@ export default async function HoldListPage({
             />
           )}
         </CardBody>
+        <Pager
+          path={`${BASE}/holds`}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager
-        path={`${BASE}/holds`}
-        query={query}
-        nextCursor={page.nextCursor}
-      />
     </>
   );
 }

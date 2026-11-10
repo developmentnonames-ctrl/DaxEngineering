@@ -9,10 +9,16 @@ import {
 } from '@mantine/core';
 import Link from 'next/link';
 import type { AodSummary } from '@dax/inventory-contract';
-import { CardBody, Empty, Mono, PageHead, SectionCard } from '@dax/web-shell';
+import {
+  CardBody,
+  Empty,
+  Mono,
+  PageHead,
+  Pager,
+  SectionCard,
+} from '@dax/web-shell';
 import { ListFilters } from '../../../../../components/list-filters';
-import { Pager } from '../../../../../components/pager';
-import { formatDateTime } from '../../../../../lib/format';
+import { formatCount, formatDateTime } from '../../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../../lib/query';
 import { requirePermission } from '../../../../../lib/server';
 import { listAods } from '../_lib/data';
@@ -44,7 +50,7 @@ export default async function AodListPage({
       <SectionCard
         flush
         title="AODs"
-        note={`${page.items.length}${page.nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <ListFilters
             searchPlaceholder="AOD or MRN number"
@@ -141,8 +147,14 @@ export default async function AodListPage({
             </Box>
           </>
         )}
+        <Pager
+          path={`${BASE}/aods`}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager path={`${BASE}/aods`} query={query} nextCursor={page.nextCursor} />
     </>
   );
 }

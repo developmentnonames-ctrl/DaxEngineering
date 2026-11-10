@@ -59,3 +59,10 @@ export function formatDay(value: string | null): string {
 export function allowsFraction(uom: string): boolean {
   return UOMS.find((u) => u.code === uom)?.fraction ?? false;
 }
+
+const COUNT = new Intl.NumberFormat('en-LK');
+
+/** A whole-number count with thousands separators, e.g. 1,204. */
+export function formatCount(value: number): string {
+  return COUNT.format(value);
+}

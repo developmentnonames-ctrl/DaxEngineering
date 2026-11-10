@@ -42,7 +42,7 @@ describe('report export links', () => {
     expect(
       exportHref('movements', {
         from: '2026-04-01',
-        cursor: 'abc',
+        page: '3',
         limit: '50',
         movement: 'ISSUE',
       }),

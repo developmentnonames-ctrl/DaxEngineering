@@ -1,14 +1,10 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { type StockPage, StockQuery } from '@dax/inventory-contract';
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { Requires } from '@dax/platform-core';
-import { PrismaService } from '@dax/platform-db';
-import { decodeCursor, encodeCursor, pageFrom, parse } from './common';
-import {
-  afterCursor,
-  belowMinFilter,
-  belowMinIds,
-  itemSearch,
-} from './item-queries';
+import { type Prisma, PrismaService } from '@dax/platform-db';
+import { parse } from './common';
+import { belowMinFilter, belowMinIds, itemSearch } from './item-queries';
 import { MainStore } from './main-store.service';
 import { isBelowMin, qtyString, stockFigures } from './stock-math';
 
@@ -30,18 +26,18 @@ export class StockController {
       qty: { gt: 0 },
       ...(query.zoneId ? { bin: { zoneId: query.zoneId } } : {}),
     };
-    const rows = await this.prisma.item.findMany({
-      where: {
-        AND: [
-          { status: 'ACTIVE' },
-          query.zoneId ? { binStock: { some: binFilter } } : {},
-          query.inStock === 'true' ? { balances: { some: inStock } } : {},
-          query.inStock === 'false' ? { balances: { none: inStock } } : {},
-          itemSearch(query.q),
-          belowMinFilter(query.belowMin, ids),
-          afterCursor(query.cursor ? decodeCursor(query.cursor) : null),
-        ],
-      },
+    const where: Prisma.ItemWhereInput = {
+      AND: [
+        { status: 'ACTIVE' },
+        query.zoneId ? { binStock: { some: binFilter } } : {},
+        query.inStock === 'true' ? { balances: { some: inStock } } : {},
+        query.inStock === 'false' ? { balances: { none: inStock } } : {},
+        itemSearch(query.q),
+        belowMinFilter(query.belowMin, ids),
+      ],
+    };
+    const findRows = this.prisma.item.findMany({
+      where,
       select: {
         id: true,
         partNo: true,
@@ -65,13 +61,14 @@ export class StockController {
         },
       },
       orderBy: [{ partNo: 'asc' }, { id: 'asc' }],
-      take: query.limit + 1,
+      ...pageWindow(query),
     });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.partNo, r.id),
-    );
+    const [rows, total] = await Promise.all([
+      findRows,
+      this.prisma.item.count({ where }),
+    ]);
     return {
-      items: page.rows.map((r) => {
+      items: rows.map((r) => {
         const { figures, onHand } = stockFigures(r.balances[0]);
         return {
           item: {
@@ -90,7 +87,7 @@ export class StockController {
           })),
         };
       }),
-      nextCursor: page.nextCursor,
+      ...pageMeta(query, total),
     };
   }
 }

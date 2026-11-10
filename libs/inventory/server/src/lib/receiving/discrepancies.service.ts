@@ -1,3 +1,4 @@
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { Injectable, type OnModuleInit } from '@nestjs/common';
 import type {
   DiscrepancyDto,
@@ -11,18 +12,10 @@ import {
   type Policy,
 } from '@dax/platform-core';
 import { type Prisma, PrismaService } from '@dax/platform-db';
-import {
-  conflict,
-  encodeCursor,
-  MODULE_KEY,
-  notFound,
-  pageFrom,
-  stale,
-} from '../common';
+import { conflict, MODULE_KEY, notFound, stale } from '../common';
 import { qtyString } from '../stock-math';
 import {
   auditEntry,
-  createdBefore,
   DISCREPANCY_KEY,
   type Db,
   ITEM_REF_SELECT,
@@ -92,22 +85,22 @@ export class DiscrepanciesService implements OnModuleInit {
   }
 
   async list(query: DiscrepancyQuery): Promise<DiscrepancyPage> {
-    const rows = await this.prisma.discrepancy.findMany({
-      where: {
-        AND: [
-          query.status === 'ALL' ? {} : { status: query.status },
-          search(query.q),
-          createdBefore(query.cursor),
-        ],
-      },
-      select: SELECT,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.createdAt.toISOString(), r.id),
-    );
-    return { items: await this.toDtos(page.rows), nextCursor: page.nextCursor };
+    const where: Prisma.DiscrepancyWhereInput = {
+      AND: [
+        query.status === 'ALL' ? {} : { status: query.status },
+        search(query.q),
+      ],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.discrepancy.findMany({
+        where,
+        select: SELECT,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.discrepancy.count({ where }),
+    ]);
+    return { items: await this.toDtos(rows), ...pageMeta(query, total) };
   }
 
   async detail(id: string): Promise<DiscrepancyDto> {

@@ -65,3 +65,6 @@ libs/platform/db/src/generated
 
 # Next.js
 .next
+
+# TypeScript incremental build caches
+*.tsbuildinfo

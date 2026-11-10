@@ -1,3 +1,4 @@
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import type {
   HoldConvert,
@@ -20,19 +21,11 @@ import {
   PrismaService,
   type TransactionClient,
 } from '@dax/platform-db';
-import {
-  conflict,
-  encodeCursor,
-  invalid,
-  notFound,
-  pageFrom,
-  stale,
-} from '../common';
+import { conflict, invalid, notFound, stale } from '../common';
 import { MainStore } from '../main-store.service';
 import {
   auditEntry,
   checkQty,
-  createdBefore,
   type Db,
   ITEM_REF_SELECT,
   loadItems,
@@ -209,38 +202,38 @@ export class MrnsService {
     else if (query.status === 'WAITING')
       status = { id: { in: await waitingMrnIds(this.prisma) } };
     else if (query.status !== 'ALL') status = { status: query.status };
-    const rows = await this.prisma.mrn.findMany({
-      where: {
-        AND: [
-          mrnScope(policy),
-          status,
-          like
-            ? {
-                OR: [
-                  { number: like },
-                  { jobNumber: like },
-                  { departmentName: like },
-                  ...(seesCustomer ? [{ customerName: like }] : []),
-                ],
-              }
-            : {},
-          createdBefore(query.cursor),
-        ],
-      },
-      select: SUMMARY_SELECT,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.createdAt.toISOString(), r.id),
-    );
+    const where: Prisma.MrnWhereInput = {
+      AND: [
+        mrnScope(policy),
+        status,
+        like
+          ? {
+              OR: [
+                { number: like },
+                { jobNumber: like },
+                { departmentName: like },
+                ...(seesCustomer ? [{ customerName: like }] : []),
+              ],
+            }
+          : {},
+      ],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.mrn.findMany({
+        where,
+        select: SUMMARY_SELECT,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.mrn.count({ where }),
+    ]);
     const reserved = await reservationsOf(
       this.prisma,
-      page.rows.flatMap((r) => r.lines.map((l) => l.id)),
+      rows.flatMap((r) => r.lines.map((l) => l.id)),
     );
     return {
-      items: page.rows.map((r) => toSummary(r, seesCustomer, reserved)),
-      nextCursor: page.nextCursor,
+      items: rows.map((r) => toSummary(r, seesCustomer, reserved)),
+      ...pageMeta(query, total),
     };
   }
 

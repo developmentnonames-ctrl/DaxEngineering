@@ -14,10 +14,10 @@ import {
   type SlowMovingQuery,
   type SlowMovingReport,
 } from '@dax/inventory-contract';
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { Prisma, PrismaService } from '@dax/platform-db';
-import { encodeCursor, pageFrom } from '../common';
 import { MainStore } from '../main-store.service';
-import { timeCursor, userNames } from '../receiving/shared';
+import { userNames } from '../receiving/shared';
 import { qtyString } from '../stock-math';
 import {
   colomboDateTime,
@@ -272,8 +272,14 @@ export class ReportsService {
 
   async movements(query: MovementReportQuery): Promise<MovementReportPage> {
     const where = await this.ledgerWhere(query);
-    const [rows, filterItem, filterBin] = await Promise.all([
-      this.ledgerPage(where, timeCursor(query.cursor), query.limit + 1),
+    const [rows, total, filterItem, filterBin] = await Promise.all([
+      this.prisma.stockLedger.findMany({
+        where,
+        select: LEDGER_SELECT,
+        orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.stockLedger.count({ where }),
       query.itemId
         ? this.prisma.item.findUnique({
             where: { id: query.itemId },
@@ -292,12 +298,9 @@ export class ReportsService {
           })
         : null,
     ]);
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.occurredAt.toISOString(), r.id),
-    );
     return {
-      items: await this.toMovementRows(page.rows),
-      nextCursor: page.nextCursor,
+      items: await this.toMovementRows(rows),
+      ...pageMeta(query, total),
       filterItem: filterItem
         ? {
             id: filterItem.id,

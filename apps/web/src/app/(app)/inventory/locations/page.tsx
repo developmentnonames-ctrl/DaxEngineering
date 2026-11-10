@@ -1,7 +1,6 @@
 import {
   Box,
   Table,
-  TableTbody,
   TableTd,
   TableTh,
   TableThead,
@@ -15,6 +14,7 @@ import {
   Empty,
   Mono,
   PageHead,
+  Pager,
   Pill,
   SectionCard,
 } from '@dax/web-shell';
@@ -26,11 +26,15 @@ import {
 } from '../../../../components/labels';
 import { LinkButton } from '../../../../components/links';
 import { ListFilters } from '../../../../components/list-filters';
-import { Pager } from '../../../../components/pager';
-import { BIN_KIND_LABELS, BIN_KIND_OPTIONS } from '../../../../lib/format';
+import {
+  BIN_KIND_LABELS,
+  BIN_KIND_OPTIONS,
+  formatCount,
+} from '../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../lib/query';
 import { requirePermission } from '../../../../lib/server';
 import { getZones, listBins } from '../_lib/data';
+import { type ZoneHead, ZoneSection, ZoneTbody } from './zone-groups';
 import { AddZoneForm, ZoneList } from './zones';
 
 function BinBadges({ bin }: { bin: BinDto }) {
@@ -56,6 +60,28 @@ export default async function LocationsPage({
   const canPrint = canDo(caps, 'inventory.location.print_label');
   const ids = page.items.map((b) => b.id);
   const bins = (b: BinDto) => `/inventory/locations/bins/${b.id}`;
+  // Bins come sorted by code, and a code starts with its zone, so each
+  // zone's bins on this page are next to each other.
+  const groups: { zone: ZoneHead; bins: BinDto[] }[] = [];
+  for (const bin of page.items) {
+    let group = groups.find((g) => g.zone.id === bin.zone.id);
+    if (!group) {
+      const zone = zones.find((z) => z.id === bin.zone.id);
+      group = {
+        zone: {
+          id: bin.zone.id,
+          code: bin.zone.code,
+          name: bin.zone.name,
+          binCount: zone?.binCount ?? 0,
+          ids: [],
+        },
+        bins: [],
+      };
+      groups.push(group);
+    }
+    group.bins.push(bin);
+    group.zone.ids.push(bin.id);
+  }
 
   return (
     <>
@@ -86,8 +112,7 @@ export default async function LocationsPage({
           title="Bins"
           note={
             <>
-              {page.items.length}
-              {page.nextCursor ? '+' : ''} shown
+              {formatCount(page.total)} total
               {canPrint && page.items.length ? (
                 <>
                   {' · '}
@@ -146,78 +171,88 @@ export default async function LocationsPage({
                         </TableTh>
                       ) : null}
                       <TableTh>Bin</TableTh>
-                      <TableTh>Zone</TableTh>
                       <TableTh ta="right">Items</TableTh>
                       <TableTh>Notes</TableTh>
                       <TableTh />
                     </TableTr>
                   </TableThead>
-                  <TableTbody>
-                    {page.items.map((bin) => (
-                      <TableTr key={bin.id}>
-                        {canPrint ? (
+                  {groups.map((group) => (
+                    <ZoneTbody
+                      key={group.zone.id}
+                      zone={group.zone}
+                      columns={4}
+                      selectable={canPrint}
+                    >
+                      {group.bins.map((bin) => (
+                        <TableTr key={bin.id}>
+                          {canPrint ? (
+                            <TableTd>
+                              <SelectCheckbox id={bin.id} label={bin.code} />
+                            </TableTd>
+                          ) : null}
                           <TableTd>
-                            <SelectCheckbox id={bin.id} label={bin.code} />
+                            <Link href={bins(bin)} className="dax-link">
+                              <Mono>{bin.code}</Mono>
+                            </Link>
                           </TableTd>
-                        ) : null}
-                        <TableTd>
-                          <Link href={bins(bin)} className="dax-link">
-                            <Mono>{bin.code}</Mono>
-                          </Link>
-                        </TableTd>
-                        <TableTd>
-                          <Mono>{bin.zone.code}</Mono>
-                        </TableTd>
-                        <TableTd className="dax-num">{bin.itemCount}</TableTd>
-                        <TableTd>
-                          <span
-                            className="dax-muted"
-                            style={{
-                              display: '-webkit-box',
-                              WebkitLineClamp: 1,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            {bin.notes ?? ''}
-                          </span>
-                        </TableTd>
-                        <TableTd>
-                          <BinBadges bin={bin} />
-                        </TableTd>
-                      </TableTr>
-                    ))}
-                  </TableTbody>
+                          <TableTd className="dax-num">{bin.itemCount}</TableTd>
+                          <TableTd>
+                            <span
+                              className="dax-muted"
+                              style={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 1,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {bin.notes ?? ''}
+                            </span>
+                          </TableTd>
+                          <TableTd>
+                            <BinBadges bin={bin} />
+                          </TableTd>
+                        </TableTr>
+                      ))}
+                    </ZoneTbody>
+                  ))}
                 </Table>
               </Box>
               <Box hiddenFrom="md" className="dax-rows">
-                {page.items.map((bin) => (
-                  <div key={bin.id} className="dax-row">
-                    <SelectCheckbox id={bin.id} label={bin.code} />
-                    <div className="dax-row-main">
-                      <Link
-                        href={bins(bin)}
-                        className="dax-link"
-                        style={{ fontSize: 17 }}
-                      >
-                        <Mono>{bin.code}</Mono>
-                      </Link>
-                      <span className="dax-sub">
-                        {bin.itemCount} {bin.itemCount === 1 ? 'item' : 'items'}
-                      </span>
-                      <BinBadges bin={bin} />
-                    </div>
-                  </div>
+                {groups.map((group) => (
+                  <ZoneSection key={group.zone.id} zone={group.zone}>
+                    {group.bins.map((bin) => (
+                      <div key={bin.id} className="dax-row">
+                        <SelectCheckbox id={bin.id} label={bin.code} />
+                        <div className="dax-row-main">
+                          <Link
+                            href={bins(bin)}
+                            className="dax-link"
+                            style={{ fontSize: 17 }}
+                          >
+                            <Mono>{bin.code}</Mono>
+                          </Link>
+                          <span className="dax-sub">
+                            {bin.itemCount}{' '}
+                            {bin.itemCount === 1 ? 'item' : 'items'}
+                          </span>
+                          <BinBadges bin={bin} />
+                        </div>
+                      </div>
+                    ))}
+                  </ZoneSection>
                 ))}
               </Box>
             </>
           )}
+          <Pager
+            path={'/inventory/locations'}
+            query={query}
+            total={page.total}
+            page={page.page}
+            limit={page.limit}
+          />
         </SectionCard>
-        <Pager
-          path="/inventory/locations"
-          query={query}
-          nextCursor={page.nextCursor}
-        />
       </LabelSelection>
     </>
   );

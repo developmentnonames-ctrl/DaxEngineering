@@ -74,39 +74,3 @@ export function newQrToken(length = 12): string {
   }
   return out;
 }
-
-export function encodeCursor(sortKey: string, id: string): string {
-  return Buffer.from(JSON.stringify([sortKey, id])).toString('base64url');
-}
-
-export function decodeCursor(cursor: string): { key: string; id: string } {
-  try {
-    const value: unknown = JSON.parse(
-      Buffer.from(cursor, 'base64url').toString('utf8'),
-    );
-    if (
-      Array.isArray(value) &&
-      value.length === 2 &&
-      typeof value[0] === 'string' &&
-      typeof value[1] === 'string'
-    ) {
-      return { key: value[0], id: value[1] };
-    }
-  } catch {
-    // fall through to the error below
-  }
-  invalid('Bad cursor.', ['cursor']);
-}
-
-export function pageFrom<T>(
-  rows: T[],
-  limit: number,
-  cursorOf: (row: T) => string,
-): { rows: T[]; nextCursor: string | null } {
-  const page = rows.slice(0, limit);
-  const last = page[page.length - 1];
-  return {
-    rows: page,
-    nextCursor: rows.length > limit && last ? cursorOf(last) : null,
-  };
-}

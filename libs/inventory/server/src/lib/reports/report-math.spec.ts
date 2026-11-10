@@ -108,7 +108,7 @@ describe('report queries', () => {
     ).toBe(false);
     expect(
       MovementReportQuery.parse({ from: '2026-05-01', to: '2026-05-01' }),
-    ).toMatchObject({ limit: 50 });
+    ).toMatchObject({ page: 1, limit: 25 });
   });
 
   it('defaults slow-moving to 90 days and only allows the set choices', () => {

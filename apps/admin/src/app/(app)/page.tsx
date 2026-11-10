@@ -31,15 +31,23 @@ export default async function AdminHome() {
   const canUsers = can('core.users.view');
   const canAudit = can('core.audit.view');
 
+  const attentionList = (status: 'locked' | 'invited') =>
+    unlessForbidden(
+      api.request(`/admin/users?status=${status}&limit=6`, (d) =>
+        AdminUserList.parse(d),
+      ),
+      null,
+    );
   const [summary, users, audit, catalog] = await Promise.all([
     unlessForbidden(
       api.request('/admin/summary', (d) => AdminSummary.parse(d)),
       null,
     ),
+    // Only the people who need attention: locked, or not set a password yet.
     canUsers
-      ? unlessForbidden(
-          api.request('/admin/users', (d) => AdminUserList.parse(d)),
-          null,
+      ? Promise.all([attentionList('locked'), attentionList('invited')]).then(
+          ([locked, invited]) =>
+            locked && invited ? [...locked.users, ...invited.users] : null,
         )
       : null,
     canAudit
@@ -114,9 +122,8 @@ export default async function AdminHome() {
       use: 'rarely',
     });
 
-  const attention = (users?.users ?? [])
+  const attention = (users ?? [])
     .map((u) => ({ user: u, status: userStatus(u) }))
-    .filter((u) => u.status === 'Locked' || u.status === 'Invited')
     .slice(0, 6);
 
   return (
