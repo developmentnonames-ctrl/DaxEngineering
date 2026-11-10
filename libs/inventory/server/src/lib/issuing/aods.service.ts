@@ -1,3 +1,4 @@
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { Injectable, type OnModuleInit } from '@nestjs/common';
 import type {
   AodCreate,
@@ -19,19 +20,10 @@ import {
   PrismaService,
   type TransactionClient,
 } from '@dax/platform-db';
-import {
-  conflict,
-  encodeCursor,
-  invalid,
-  MODULE_KEY,
-  notFound,
-  pageFrom,
-  stale,
-} from '../common';
+import { conflict, invalid, MODULE_KEY, notFound, stale } from '../common';
 import { MainStore } from '../main-store.service';
 import {
   auditEntry,
-  createdBefore,
   type Db,
   ITEM_REF_SELECT,
   stampOf,
@@ -172,38 +164,38 @@ export class AodsService implements OnModuleInit {
     const like = query.q
       ? { contains: query.q, mode: 'insensitive' as const }
       : null;
-    const rows = await this.prisma.aod.findMany({
-      where: {
-        AND: [
-          aodScope(policy),
-          query.status === 'ALL'
-            ? {}
-            : query.status === 'OPEN'
-              ? { status: { in: OPEN_AOD_STATUSES } }
-              : { status: query.status },
-          like
-            ? {
-                OR: [
-                  { number: like },
-                  { deliverTo: like },
-                  { mrn: { number: like } },
-                  { mrn: { jobNumber: like } },
-                ],
-              }
-            : {},
-          createdBefore(query.cursor),
-        ],
-      },
-      select: SUMMARY_SELECT,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.createdAt.toISOString(), r.id),
-    );
+    const where: Prisma.AodWhereInput = {
+      AND: [
+        aodScope(policy),
+        query.status === 'ALL'
+          ? {}
+          : query.status === 'OPEN'
+            ? { status: { in: OPEN_AOD_STATUSES } }
+            : { status: query.status },
+        like
+          ? {
+              OR: [
+                { number: like },
+                { deliverTo: like },
+                { mrn: { number: like } },
+                { mrn: { jobNumber: like } },
+              ],
+            }
+          : {},
+      ],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.aod.findMany({
+        where,
+        select: SUMMARY_SELECT,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.aod.count({ where }),
+    ]);
     return {
-      items: page.rows.map((r) => toSummary(r, seesCustomer)),
-      nextCursor: page.nextCursor,
+      items: rows.map((r) => toSummary(r, seesCustomer)),
+      ...pageMeta(query, total),
     };
   }
 

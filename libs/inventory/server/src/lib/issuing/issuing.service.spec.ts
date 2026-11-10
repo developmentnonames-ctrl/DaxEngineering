@@ -90,7 +90,7 @@ describe('holds', () => {
       hold: { create: async () => ({ id: ID, lines: [] }) },
     };
     const prisma = asPrisma({
-      hold: { findMany },
+      hold: { findMany, count: async () => 1 },
       department: {
         findUnique: async () => ({ id: DEPT, name: 'Service', active: true }),
       },
@@ -108,14 +108,18 @@ describe('holds', () => {
   it('hides the customer from people who may not read it', async () => {
     const policy = fakePolicy(['inventory.hold.view']);
     const service = holds(async () => [holdRow]);
-    const shown = await service.list(policy, { status: 'ACTIVE', limit: 50 });
+    const shown = await service.list(policy, {
+      status: 'ACTIVE',
+      page: 1,
+      limit: 50,
+    });
     expect(shown.items[0]?.customer).toEqual({
       id: CUSTOMER,
       name: 'Acme Plantations',
     });
     const hidden = await service.list(
       withoutField(policy, 'inventory.hold', 'customerName'),
-      { status: 'ACTIVE', limit: 50 },
+      { status: 'ACTIVE', page: 1, limit: 50 },
     );
     expect(hidden.items[0]).not.toHaveProperty('customer');
   });
@@ -129,10 +133,12 @@ describe('holds', () => {
     const base = fakePolicy(['inventory.hold.view']);
     await service.list(withScope(base, 'inventory.hold.view', 'OWN'), {
       status: 'ALL',
+      page: 1,
       limit: 50,
     });
     await service.list(withScope(base, 'inventory.hold.view', 'DEPARTMENT'), {
       status: 'ALL',
+      page: 1,
       limit: 50,
     });
     expect(JSON.stringify(calls[0])).toContain(`"createdBy":"${base.userId}"`);

@@ -1,3 +1,4 @@
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { Injectable, type OnModuleInit } from '@nestjs/common';
 import type {
   WarrantyClose,
@@ -22,15 +23,7 @@ import {
   PrismaService,
   type TransactionClient,
 } from '@dax/platform-db';
-import {
-  canRead,
-  encodeCursor,
-  invalid,
-  MODULE_KEY,
-  notFound,
-  pageFrom,
-  stale,
-} from '../common';
+import { canRead, invalid, MODULE_KEY, notFound, stale } from '../common';
 import { warrantyTagEntity } from '../entities';
 import { activeCustomer, customerRef } from '../issuing/shared';
 import { MainStore } from '../main-store.service';
@@ -38,7 +31,6 @@ import {
   activeSupplier,
   auditEntry,
   checkQty,
-  createdBefore,
   type Db,
   ITEM_REF_SELECT,
   loadItems,
@@ -223,24 +215,21 @@ export class WarrantyService implements OnModuleInit {
 
   async list(policy: Policy, query: WarrantyQuery): Promise<WarrantyPage> {
     const withCustomer = seesCustomer(policy);
-    const rows = await this.prisma.warrantyTag.findMany({
-      where: {
-        AND: [
-          statusWhere(query.status),
-          search(query.q, withCustomer),
-          createdBefore(query.cursor),
-        ],
-      },
-      select: SUMMARY_SELECT,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.createdAt.toISOString(), r.id),
-    );
+    const where: Prisma.WarrantyTagWhereInput = {
+      AND: [statusWhere(query.status), search(query.q, withCustomer)],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.warrantyTag.findMany({
+        where,
+        select: SUMMARY_SELECT,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.warrantyTag.count({ where }),
+    ]);
     return {
-      items: page.rows.map((r) => toSummary(r, withCustomer)),
-      nextCursor: page.nextCursor,
+      items: rows.map((r) => toSummary(r, withCustomer)),
+      ...pageMeta(query, total),
     };
   }
 

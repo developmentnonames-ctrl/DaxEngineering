@@ -13,6 +13,7 @@ import {
   type ZoneInput,
   type ZoneUpdate,
 } from '@dax/inventory-contract';
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { assertWritable, AuditService, type Policy } from '@dax/platform-core';
 import {
   Prisma,
@@ -23,14 +24,11 @@ import { binParts, bulkBinParts, splitExisting } from './bin-codes';
 import {
   canRead,
   conflict,
-  decodeCursor,
-  encodeCursor,
   invalid,
   isUniqueViolation,
   MODULE_KEY,
   newQrToken,
   notFound,
-  pageFrom,
   stale,
   SYSTEM_ACTOR_ID,
 } from './common';
@@ -59,7 +57,7 @@ const BIN_SELECT = {
   active: true,
   notes: true,
   version: true,
-  zone: { select: { id: true, code: true } },
+  zone: { select: { id: true, code: true, name: true } },
   _count: { select: { stock: { where: { qty: { gt: 0 } } } } },
 } as const;
 
@@ -189,32 +187,26 @@ export class LocationsService implements OnModuleInit {
 
   async bins(policy: Policy, query: BinQuery): Promise<BinPage> {
     const storeId = await this.store.id();
-    const cursor = query.cursor ? decodeCursor(query.cursor) : null;
     const q = query.q?.trim().toUpperCase();
-    const rows = await this.prisma.bin.findMany({
-      where: {
-        storeId,
-        ...(query.zoneId ? { zoneId: query.zoneId } : {}),
-        ...(query.kind ? { kind: query.kind } : {}),
-        ...(query.active === 'all' ? {} : { active: query.active === 'true' }),
-        ...(q ? { code: { contains: q } } : {}),
-        ...(cursor
-          ? {
-              OR: [
-                { code: { gt: cursor.key } },
-                { code: cursor.key, id: { gt: cursor.id } },
-              ],
-            }
-          : {}),
-      },
-      select: BIN_SELECT,
-      orderBy: [{ code: 'asc' }, { id: 'asc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) => encodeCursor(r.code, r.id));
+    const where: Prisma.BinWhereInput = {
+      storeId,
+      ...(query.zoneId ? { zoneId: query.zoneId } : {}),
+      ...(query.kind ? { kind: query.kind } : {}),
+      ...(query.active === 'all' ? {} : { active: query.active === 'true' }),
+      ...(q ? { code: { contains: q } } : {}),
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.bin.findMany({
+        where,
+        select: BIN_SELECT,
+        orderBy: [{ code: 'asc' }, { id: 'asc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.bin.count({ where }),
+    ]);
     return {
-      items: page.rows.map((r) => toBin(policy, r)),
-      nextCursor: page.nextCursor,
+      items: rows.map((r) => toBin(policy, r)),
+      ...pageMeta(query, total),
     };
   }
 

@@ -1,9 +1,18 @@
 // Throwaway dax_test database for *.db.spec.ts: `reset` recreates it, `run` runs the DB tests.
+// Uses the Postgres installed on this PC, with the same accounts as .env.
 import { execFileSync } from 'node:child_process';
+import { envValue, psql as runPsql } from './native-db';
 
-const MIGRATOR =
-  'postgresql://dax_migrator:migrator-dev-only@localhost:55432/dax_test';
-const APP = 'postgresql://dax_app:app-dev-only@localhost:55432/dax_test';
+function onDatabase(key: string, db: string): string {
+  const value = envValue(key);
+  if (!value) throw new Error(`${key} is missing from .env`);
+  const url = new URL(value);
+  url.pathname = `/${db}`;
+  return url.toString();
+}
+
+const MIGRATOR = onDatabase('MIGRATOR_DATABASE_URL', 'dax_test');
+const APP = onDatabase('DATABASE_URL', 'dax_test');
 const DB_PROJECTS = ['inventory-server'];
 
 function run(
@@ -20,22 +29,10 @@ function run(
   });
 }
 
+// The migrator signs in as dax_owner, which may create and drop databases
+// on a dev PC (see infra/postgres/native-setup.sql), so no superuser needed.
 function psql(sql: string, db = 'postgres') {
-  run('docker', [
-    'compose',
-    'exec',
-    '-T',
-    'postgres',
-    'psql',
-    '-U',
-    'postgres',
-    '-d',
-    db,
-    '-v',
-    'ON_ERROR_STOP=1',
-    '-c',
-    `"${sql}"`,
-  ]);
+  runPsql(onDatabase('MIGRATOR_DATABASE_URL', db), ['-c', sql]);
 }
 
 function reset() {

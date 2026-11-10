@@ -39,18 +39,6 @@ export function belowMinFilter(
   return {};
 }
 
-export function afterCursor(
-  cursor: { key: string; id: string } | null,
-): Prisma.ItemWhereInput {
-  if (!cursor) return {};
-  return {
-    OR: [
-      { partNo: { gt: cursor.key } },
-      { partNo: cursor.key, id: { gt: cursor.id } },
-    ],
-  };
-}
-
 export function nextOfFor(db: Db) {
   return async (id: string): Promise<string | null> => {
     const row = await db.item.findUnique({

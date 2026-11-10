@@ -12,3 +12,4 @@ export * from './lib/dax-shell';
 export * from './lib/icon';
 export * from './lib/ui';
 export * from './lib/logo';
+export * from './lib/pager';

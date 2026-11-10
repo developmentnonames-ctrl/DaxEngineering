@@ -44,7 +44,7 @@ export function ListFilters({
       if (value) next.set(key, value);
       else next.delete(key);
     }
-    next.delete('cursor');
+    next.delete('page');
     const query = next.toString();
     startTransition(() =>
       router.push(query ? `${pathname}?${query}` : pathname),

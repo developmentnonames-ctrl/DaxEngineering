@@ -1,3 +1,4 @@
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { Injectable } from '@nestjs/common';
 import type {
   ReturnableAod,
@@ -21,14 +22,7 @@ import {
   PrismaService,
   type TransactionClient,
 } from '@dax/platform-db';
-import {
-  canRead,
-  encodeCursor,
-  invalid,
-  notFound,
-  pageFrom,
-  stale,
-} from '../common';
+import { canRead, invalid, notFound, stale } from '../common';
 import { returnNoteEntity } from '../entities';
 import {
   activeCustomer,
@@ -39,7 +33,6 @@ import { MainStore } from '../main-store.service';
 import {
   auditEntry,
   checkQty,
-  createdBefore,
   type Db,
   ITEM_REF_SELECT,
   loadItems,
@@ -282,34 +275,34 @@ export class ReturnsService {
     const like = query.q
       ? { contains: query.q, mode: 'insensitive' as const }
       : null;
-    const rows = await this.prisma.returnNote.findMany({
-      where: {
-        AND: [
-          query.status === 'ALL' ? {} : { status: query.status },
-          like
-            ? {
-                OR: [
-                  { number: like },
-                  { jobNumber: like },
-                  { departmentName: like },
-                  { aod: { number: like } },
-                  ...(seesCustomer ? [{ customerName: like }] : []),
-                ],
-              }
-            : {},
-          createdBefore(query.cursor),
-        ],
-      },
-      select: SUMMARY_SELECT,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.createdAt.toISOString(), r.id),
-    );
+    const where: Prisma.ReturnNoteWhereInput = {
+      AND: [
+        query.status === 'ALL' ? {} : { status: query.status },
+        like
+          ? {
+              OR: [
+                { number: like },
+                { jobNumber: like },
+                { departmentName: like },
+                { aod: { number: like } },
+                ...(seesCustomer ? [{ customerName: like }] : []),
+              ],
+            }
+          : {},
+      ],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.returnNote.findMany({
+        where,
+        select: SUMMARY_SELECT,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.returnNote.count({ where }),
+    ]);
     return {
-      items: page.rows.map((r) => toSummary(r, seesCustomer)),
-      nextCursor: page.nextCursor,
+      items: rows.map((r) => toSummary(r, seesCustomer)),
+      ...pageMeta(query, total),
     };
   }
 

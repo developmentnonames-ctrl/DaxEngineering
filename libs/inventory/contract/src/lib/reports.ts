@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PageQuery, pageOf } from '@dax/contracts';
+import { PageParams, pageOf } from '@dax/contracts';
 import { BIN_KINDS } from './dto';
 import { MOVEMENT_TYPES, MovementRow } from './receiving';
 
@@ -69,22 +69,17 @@ export const BelowMinReport = z.object({
 });
 export type BelowMinReport = z.infer<typeof BelowMinReport>;
 
-export const MovementReportQuery = PageQuery.pick({
-  cursor: true,
-  limit: true,
-})
-  .extend({
-    from: ReportDay.optional(),
-    to: ReportDay.optional(),
-    itemId: z.uuid().optional(),
-    binId: z.uuid().optional(),
-    movement: z.enum(MOVEMENT_TYPES).optional(),
-    docType: z.enum(REPORT_DOC_TYPES).optional(),
-  })
-  .refine((q) => !q.from || !q.to || q.from <= q.to, {
-    message: 'The start date must be on or before the end date.',
-    path: ['to'],
-  });
+export const MovementReportQuery = PageParams.extend({
+  from: ReportDay.optional(),
+  to: ReportDay.optional(),
+  itemId: z.uuid().optional(),
+  binId: z.uuid().optional(),
+  movement: z.enum(MOVEMENT_TYPES).optional(),
+  docType: z.enum(REPORT_DOC_TYPES).optional(),
+}).refine((q) => !q.from || !q.to || q.from <= q.to, {
+  message: 'The start date must be on or before the end date.',
+  path: ['to'],
+});
 export type MovementReportQuery = z.infer<typeof MovementReportQuery>;
 
 export const MovementReportRow = MovementRow.extend({

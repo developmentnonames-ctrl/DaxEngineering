@@ -10,12 +10,17 @@ describe('list query helpers', () => {
       brandId: 'not-a-uuid',
       status: 'ALL',
     });
-    expect(query).toMatchObject({ q: 'filter', status: 'ALL', limit: 50 });
+    expect(query).toMatchObject({
+      q: 'filter',
+      status: 'ALL',
+      page: 1,
+      limit: 25,
+    });
     expect(query).not.toHaveProperty('brandId');
   });
 
   it('builds query strings without empty values', () => {
-    expect(toQuery({ q: 'a b', cursor: undefined, active: '' })).toBe('?q=a+b');
+    expect(toQuery({ q: 'a b', page: undefined, active: '' })).toBe('?q=a+b');
     expect(toQuery({})).toBe('');
   });
 

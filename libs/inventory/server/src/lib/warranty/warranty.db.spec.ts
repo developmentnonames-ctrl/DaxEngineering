@@ -172,6 +172,7 @@ describe.skipIf(!url)(
       const open = await warranty.list(policy, {
         status: 'OPEN',
         q: 'CLM-1',
+        page: 1,
         limit: 50,
       });
       expect(open.items.map((t) => t.id)).toContain(tagged.id);

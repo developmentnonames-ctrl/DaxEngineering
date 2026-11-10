@@ -15,12 +15,12 @@ import {
   Empty,
   Mono,
   PageHead,
+  Pager,
   SectionCard,
 } from '@dax/web-shell';
 import { ListFilters } from '../../../../components/list-filters';
-import { Pager } from '../../../../components/pager';
 import { BelowMinBadge, StockLine } from '../../../../components/stock';
-import { formatQty } from '../../../../lib/format';
+import { formatCount, formatQty } from '../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../lib/query';
 import { requirePermission } from '../../../../lib/server';
 import { getZones, listStock } from '../_lib/data';
@@ -71,7 +71,7 @@ export default async function StockPage({
       <SectionCard
         flush
         title="Stock on hand"
-        note={`${page.items.length}${page.nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <ListFilters
             searchPlaceholder="Part number or description"
@@ -186,12 +186,14 @@ export default async function StockPage({
             </Box>
           </>
         )}
+        <Pager
+          path={'/inventory/stock'}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager
-        path="/inventory/stock"
-        query={query}
-        nextCursor={page.nextCursor}
-      />
     </>
   );
 }

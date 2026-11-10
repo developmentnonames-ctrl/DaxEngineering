@@ -16,12 +16,12 @@ import {
   KpiTiles,
   Mono,
   PageHead,
+  Pager,
   SectionCard,
 } from '@dax/web-shell';
 import { LinkButton } from '../../../../components/links';
 import { ListFilters } from '../../../../components/list-filters';
-import { Pager } from '../../../../components/pager';
-import { formatDateTime, formatQty } from '../../../../lib/format';
+import { formatCount, formatDateTime, formatQty } from '../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../lib/query';
 import { requirePermission } from '../../../../lib/server';
 import { getWarrantyCounts, listWarranty } from './_lib/data';
@@ -77,7 +77,7 @@ export default async function WarrantyListPage({
       <SectionCard
         flush
         title="Warranty tags"
-        note={`${page.items.length}${page.nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <ListFilters
             searchPlaceholder="Tag, serial, job, claim or part number"
@@ -193,8 +193,14 @@ export default async function WarrantyListPage({
             </Box>
           </>
         )}
+        <Pager
+          path={BASE}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager path={BASE} query={query} nextCursor={page.nextCursor} />
     </>
   );
 }

@@ -33,7 +33,7 @@ export async function searchItems(
       `/inventory/items${toQuery({ q: query.data, limit: 20, status: 'ACTIVE' })}`,
       (d) => ItemPage.parse(d),
     ),
-    { items: [], nextCursor: null },
+    { items: [], total: 0, page: 1, limit: 20 },
   );
   return page.items
     .filter((i) => i.id !== excludeId)
@@ -51,7 +51,7 @@ export async function searchBins(q: string): Promise<PickerOption[]> {
       `/inventory/bins${toQuery({ q: query.data || undefined, limit: 20, active: 'true' })}`,
       (d) => BinPage.parse(d),
     ),
-    { items: [], nextCursor: null },
+    { items: [], total: 0, page: 1, limit: 20 },
   );
   return page.items.map((b) => ({ value: b.id, label: b.code }));
 }

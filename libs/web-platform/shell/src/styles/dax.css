@@ -596,6 +596,27 @@ a.dax-kpi:hover {
   font-weight: 500;
   overflow-wrap: anywhere;
 }
+/* At-a-glance counts: big numbers on soft tiles */
+.dax-facts.big {
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+.dax-facts.big > div {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--dax-soft);
+}
+.dax-facts.big dt {
+  font-size: 13px;
+}
+.dax-facts.big dd {
+  margin-top: 8px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
 
 /* Tables inside cards */
 .dax-card .mantine-Table-table th,
@@ -1098,11 +1119,75 @@ a.dax-kpi:hover {
   font-size: 14px;
 }
 
+/* Numbered pages under a list: info left, pages middle, rows-per-page right */
 .dax-pager {
   display: flex;
-  justify-content: center;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
   flex-wrap: wrap;
+  padding: 14px 4px 2px;
+  font-size: 13px;
+  color: var(--dax-muted);
+}
+.dax-card.flush > .dax-pager {
+  padding: 14px 26px 18px;
+  border-top: 1px solid var(--dax-line);
+}
+.dax-pager-info {
+  font-variant-numeric: tabular-nums;
+}
+.dax-pager-pages,
+.dax-pager-sizes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.dax-pager-sizes {
+  gap: 2px;
+}
+.dax-pager-sizes > :first-child {
+  margin-left: 6px;
+}
+.dax-pager-num,
+.dax-pager-step {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 10px;
+  color: var(--dax-ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+.dax-pager-num:hover,
+a.dax-pager-step:hover {
+  background: var(--dax-soft);
+}
+.dax-pager-num[aria-current] {
+  background: var(--dax-brand);
+  color: var(--dax-on-ink);
+}
+.dax-pager-step[aria-disabled='true'] {
+  color: var(--dax-line-strong);
+}
+.dax-pager-step.next svg {
+  transform: rotate(180deg);
+}
+.dax-pager-gap {
+  min-width: 20px;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .dax-pager {
+    justify-content: center;
+  }
+  .dax-pager-info {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 @media (max-width: 900px) {
@@ -1270,17 +1355,21 @@ input:checked + .dax-switch-track .dax-switch-thumb {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-left: 5px solid var(--dax-line-strong);
+  border: 1px solid var(--dax-line);
   min-width: 0;
 }
+/* Status shows as a soft tint with a matching outline, not a side stripe */
 .dax-line[data-tone='ok'] {
-  border-left-color: var(--dax-ok);
+  background: var(--dax-ok-soft);
+  border-color: color-mix(in srgb, var(--dax-ok) 35%, transparent);
 }
 .dax-line[data-tone='bad'] {
-  border-left-color: var(--dax-bad);
+  background: var(--dax-bad-soft);
+  border-color: color-mix(in srgb, var(--dax-bad) 35%, transparent);
 }
 .dax-line[data-tone='yel'] {
-  border-left-color: var(--dax-yel);
+  background: var(--dax-yel-soft);
+  border-color: color-mix(in srgb, var(--dax-yel) 45%, transparent);
 }
 .dax-line[data-flash='true'] {
   box-shadow: 0 0 0 3px var(--dax-int);
@@ -1406,4 +1495,102 @@ input:checked + .dax-switch-track .dax-switch-thumb {
   .dax-line {
     padding: 14px;
   }
+}
+
+/* Locations: add-zone row and zone cards */
+.dax-zone-add {
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px dashed var(--dax-line-strong);
+}
+.dax-zone-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.dax-zone-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--dax-line);
+  background: var(--dax-soft);
+  min-width: 0;
+}
+.dax-zone-card[data-off='true'] {
+  opacity: 0.65;
+}
+.dax-zone-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.dax-zone-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.dax-zone-card-name {
+  font-size: 15px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+/* Bins table: zone groups that open and close */
+.dax-zone.sm {
+  min-width: 34px;
+  height: 28px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+.dax-zone-row,
+.dax-zone-row > td {
+  background: var(--dax-soft);
+}
+div.dax-zone-row {
+  padding: 4px 10px;
+  border-top: 1px solid var(--dax-line);
+}
+.dax-zone-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--dax-ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.dax-zone-head b {
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.dax-zone-head .dax-muted {
+  margin-left: auto;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.dax-zone-head:focus-visible {
+  outline: 2px solid var(--dax-int);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.dax-zone-chevron {
+  display: inline-grid;
+  place-items: center;
+  color: var(--dax-muted);
+  transform: rotate(-90deg);
+  transition: transform 0.15s;
+}
+.dax-zone-chevron[data-open='true'] {
+  transform: none;
 }

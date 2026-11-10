@@ -1,0 +1,23 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "es2021",
+    "strict": true,
+    "noEmit": true
+  },
+  "include": [
+    "./**/*.ts",
+    "../../../libs/inventory/server/src/**/*.ts",
+    "../../../libs/inventory/contract/src/**/*.ts",
+    "../../../libs/parties/server/src/**/*.ts",
+    "../../../libs/parties/contract/src/**/*.ts",
+    "../../../libs/platform/core/src/**/*.ts",
+    "../../../libs/platform/db/src/**/*.ts",
+    "../../../libs/platform/contract/src/**/*.ts",
+    "../../../libs/shared/contracts/src/**/*.ts"
+  ],
+  "exclude": ["../../../libs/**/*.spec.ts"]
+}

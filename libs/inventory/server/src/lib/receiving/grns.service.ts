@@ -1,3 +1,4 @@
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { ConflictException, Injectable } from '@nestjs/common';
 import type {
   GrnCreate,
@@ -19,14 +20,7 @@ import {
   PrismaService,
   type TransactionClient,
 } from '@dax/platform-db';
-import {
-  conflict,
-  encodeCursor,
-  invalid,
-  notFound,
-  pageFrom,
-  stale,
-} from '../common';
+import { conflict, invalid, notFound, stale } from '../common';
 import { MainStore } from '../main-store.service';
 import { dec, qtyString } from '../stock-math';
 import { goodsReceived, grnReversed } from '../stock/events';
@@ -49,7 +43,6 @@ import {
   activeSupplier,
   auditEntry,
   checkQty,
-  createdBefore,
   dateToDay,
   dayToDate,
   GRN_DOC_TYPE,
@@ -193,22 +186,19 @@ export class GrnsService {
   ) {}
 
   async list(query: GrnQuery): Promise<GrnPage> {
-    const rows = await this.prisma.grn.findMany({
-      where: {
-        AND: [
-          statusFilter(query.status),
-          search(query.q),
-          createdBefore(query.cursor),
-        ],
-      },
-      select: SUMMARY_SELECT,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.createdAt.toISOString(), r.id),
-    );
-    return { items: page.rows.map(toSummary), nextCursor: page.nextCursor };
+    const where: Prisma.GrnWhereInput = {
+      AND: [statusFilter(query.status), search(query.q)],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.grn.findMany({
+        where,
+        select: SUMMARY_SELECT,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.grn.count({ where }),
+    ]);
+    return { items: rows.map(toSummary), ...pageMeta(query, total) };
   }
 
   async detail(id: string): Promise<GrnDto> {

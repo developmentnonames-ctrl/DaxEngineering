@@ -1,3 +1,4 @@
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { ConflictException, Injectable } from '@nestjs/common';
 import type {
   CountAddLine,
@@ -22,18 +23,15 @@ import {
 } from '@dax/platform-db';
 import {
   conflict,
-  encodeCursor,
   invalid,
   isUniqueViolation,
   notFound,
-  pageFrom,
   stale,
 } from '../common';
 import { MainStore } from '../main-store.service';
 import {
   auditEntry,
   checkQty,
-  createdBefore,
   ITEM_REF_SELECT,
   loadItems,
   stampOf,
@@ -201,25 +199,25 @@ export class CountsService {
     if (query.status === 'OPEN')
       status = { status: { in: OPEN_COUNT_STATUSES } };
     else if (query.status !== 'ALL') status = { status: query.status };
-    const rows = await this.prisma.stockCount.findMany({
-      where: {
-        AND: [
-          status,
-          query.kind ? { kind: query.kind } : {},
-          query.q
-            ? { number: { contains: query.q, mode: 'insensitive' as const } }
-            : {},
-          createdBefore(query.cursor),
-        ],
-      },
-      select: SUMMARY_SELECT,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.createdAt.toISOString(), r.id),
-    );
-    const ids = page.rows.map((r) => r.id);
+    const where: Prisma.StockCountWhereInput = {
+      AND: [
+        status,
+        query.kind ? { kind: query.kind } : {},
+        query.q
+          ? { number: { contains: query.q, mode: 'insensitive' as const } }
+          : {},
+      ],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.stockCount.findMany({
+        where,
+        select: SUMMARY_SELECT,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.stockCount.count({ where }),
+    ]);
+    const ids = rows.map((r) => r.id);
     const [counted, names] = await Promise.all([
       ids.length
         ? this.prisma.countLine.groupBy({
@@ -230,15 +228,13 @@ export class CountsService {
         : [],
       userNames(
         this.prisma,
-        page.rows.map((r) => r.createdBy),
+        rows.map((r) => r.createdBy),
       ),
     ]);
     const countedOf = new Map(counted.map((c) => [c.countId, c._count._all]));
     return {
-      items: page.rows.map((r) =>
-        toSummary(r, countedOf.get(r.id) ?? 0, names),
-      ),
-      nextCursor: page.nextCursor,
+      items: rows.map((r) => toSummary(r, countedOf.get(r.id) ?? 0, names)),
+      ...pageMeta(query, total),
     };
   }
 

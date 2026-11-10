@@ -305,7 +305,11 @@ describe.skipIf(!url)('issuing against Postgres', { timeout: 60_000 }, () => {
       ['2', '3'],
     ]);
     expect(checked.waitingLines).toBe(1);
-    const waiting = await mrns.list(policy, { status: 'WAITING', limit: 200 });
+    const waiting = await mrns.list(policy, {
+      status: 'WAITING',
+      page: 1,
+      limit: 200,
+    });
     expect(waiting.items.map((m) => m.id)).toContain(draft.id);
 
     await receive(itemB, '4');

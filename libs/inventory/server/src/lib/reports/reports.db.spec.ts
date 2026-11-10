@@ -149,22 +149,24 @@ describe.skipIf(!url)('stores reports against Postgres', () => {
   });
 
   it('lists movements newest first and filters them', async () => {
-    const page = await reports.movements({ itemId, limit: 2 });
+    const page = await reports.movements({ itemId, page: 1, limit: 2 });
     expect(page.items.map((r) => `${r.movement} ${r.qty}`).sort()).toEqual([
       'PUTAWAY_IN 4',
       'PUTAWAY_OUT -4',
     ]);
-    expect(page.nextCursor).not.toBeNull();
+    expect(page).toMatchObject({ total: 3, page: 1, limit: 2 });
     expect(page.filterItem?.label).toContain(partNo);
     const rest = await reports.movements({
       itemId,
+      page: 2,
       limit: 2,
-      cursor: page.nextCursor ?? undefined,
     });
     expect(rest.items.map((r) => r.movement)).toEqual(['RECEIVE']);
+    expect(rest.total).toBe(3);
     const received = await reports.movements({
       itemId,
       movement: 'RECEIVE',
+      page: 1,
       limit: 50,
     });
     expect(received.items).toHaveLength(1);
@@ -173,13 +175,14 @@ describe.skipIf(!url)('stores reports against Postgres', () => {
       itemId,
       from: '2020-01-01',
       to: '2020-01-31',
+      page: 1,
       limit: 50,
     });
     expect(past.items).toEqual([]);
   });
 
   it('exports movements as CSV', async () => {
-    const file = await reports.movementsCsv({ itemId, limit: 50 });
+    const file = await reports.movementsCsv({ itemId, page: 1, limit: 50 });
     const lines = file.text.trim().split('\r\n');
     expect(lines[0]).toContain('Date and time,Movement,Part number');
     expect(lines).toHaveLength(4);

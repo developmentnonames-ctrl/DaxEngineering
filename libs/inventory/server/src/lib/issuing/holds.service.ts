@@ -1,3 +1,4 @@
+import { pageMeta, pageWindow } from '@dax/contracts';
 import { Injectable } from '@nestjs/common';
 import type {
   HoldDto,
@@ -11,11 +12,10 @@ import {
   type Policy,
 } from '@dax/platform-core';
 import { type Prisma, PrismaService } from '@dax/platform-db';
-import { encodeCursor, notFound, pageFrom, stale } from '../common';
+import { notFound, stale } from '../common';
 import {
   auditEntry,
   checkQty,
-  createdBefore,
   ITEM_REF_SELECT,
   loadItems,
   requireItem,
@@ -97,33 +97,33 @@ export class HoldsService {
     const like = query.q
       ? { contains: query.q, mode: 'insensitive' as const }
       : null;
-    const rows = await this.prisma.hold.findMany({
-      where: {
-        AND: [
-          holdScope(policy),
-          query.status === 'ALL' ? {} : { status: query.status },
-          like
-            ? {
-                OR: [
-                  { number: like },
-                  { departmentName: like },
-                  ...(seesCustomer ? [{ customerName: like }] : []),
-                ],
-              }
-            : {},
-          createdBefore(query.cursor),
-        ],
-      },
-      select: SUMMARY_SELECT,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.createdAt.toISOString(), r.id),
-    );
+    const where: Prisma.HoldWhereInput = {
+      AND: [
+        holdScope(policy),
+        query.status === 'ALL' ? {} : { status: query.status },
+        like
+          ? {
+              OR: [
+                { number: like },
+                { departmentName: like },
+                ...(seesCustomer ? [{ customerName: like }] : []),
+              ],
+            }
+          : {},
+      ],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.hold.findMany({
+        where,
+        select: SUMMARY_SELECT,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.hold.count({ where }),
+    ]);
     return {
-      items: page.rows.map((r) => toSummary(r, seesCustomer)),
-      nextCursor: page.nextCursor,
+      items: rows.map((r) => toSummary(r, seesCustomer)),
+      ...pageMeta(query, total),
     };
   }
 

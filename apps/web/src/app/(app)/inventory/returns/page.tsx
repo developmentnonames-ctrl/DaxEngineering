@@ -5,12 +5,12 @@ import {
   LinkList,
   Mono,
   PageHead,
+  Pager,
   SectionCard,
 } from '@dax/web-shell';
 import { LinkButton } from '../../../../components/links';
 import { ListFilters } from '../../../../components/list-filters';
-import { Pager } from '../../../../components/pager';
-import { formatDateTime } from '../../../../lib/format';
+import { formatCount, formatDateTime } from '../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../lib/query';
 import { requirePermission } from '../../../../lib/server';
 import { listReturns } from './_lib/data';
@@ -42,7 +42,7 @@ export default async function ReturnListPage({
       <SectionCard
         flush
         title="Return notes"
-        note={`${page.items.length}${page.nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <ListFilters
             searchPlaceholder="Return, AOD, job or department"
@@ -89,8 +89,14 @@ export default async function ReturnListPage({
             />
           )}
         </CardBody>
+        <Pager
+          path={BASE}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager path={BASE} query={query} nextCursor={page.nextCursor} />
     </>
   );
 }

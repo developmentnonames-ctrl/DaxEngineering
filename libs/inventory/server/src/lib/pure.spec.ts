@@ -9,7 +9,7 @@ import {
   BULK_BIN_LIMIT,
   splitExisting,
 } from './bin-codes';
-import { decodeCursor, encodeCursor, newQrToken } from './common';
+import { newQrToken } from './common';
 import { looksLikeBinCode, parseScanCode } from './scan-code';
 import { isBelowMin, qtyString, stockFigures } from './stock-math';
 import { createsCycle, latestReplacementId } from './supersession';
@@ -201,16 +201,10 @@ describe('scan codes', () => {
   });
 });
 
-describe('tokens and cursors', () => {
+describe('tokens', () => {
   it('makes 12-character base62 tokens', () => {
     const tokens = new Set(Array.from({ length: 500 }, () => newQrToken()));
     expect(tokens.size).toBe(500);
     for (const t of tokens) expect(t).toMatch(/^[A-Za-z0-9]{12}$/);
-  });
-
-  it('round-trips cursors and rejects garbage', () => {
-    const cursor = encodeCursor('1R|0750', 'id-1');
-    expect(decodeCursor(cursor)).toEqual({ key: '1R|0750', id: 'id-1' });
-    expect(() => decodeCursor('not-a-cursor')).toThrow();
   });
 });

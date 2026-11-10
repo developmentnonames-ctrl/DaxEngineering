@@ -51,7 +51,7 @@ export async function searchStorageBins(q: string): Promise<PickerOption[]> {
       `/inventory/bins${toQuery({ q: query.data || undefined, limit: 20, active: 'true', kind: 'STORAGE' })}`,
       (d) => BinPage.parse(d),
     ),
-    { items: [], nextCursor: null },
+    { items: [], total: 0, page: 1, limit: 20 },
   );
   return page.items.map((b) => ({ value: b.id, label: b.code }));
 }

@@ -25,7 +25,7 @@ function upstreamPath(slug: ReportSlug, search: URLSearchParams): string {
     case 'movements':
       return `/inventory/reports/movements/csv${toQuery({
         ...readQuery(MovementReportQuery, raw),
-        cursor: undefined,
+        page: undefined,
         limit: undefined,
       })}`;
     case 'stock-by-bin':

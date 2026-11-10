@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { ImportResult } from '@dax/contracts';
+import { type ImportResult, pageMeta, pageWindow } from '@dax/contracts';
 import {
   type BarcodeInput,
   type ItemDetail,
@@ -22,14 +22,11 @@ import {
 import {
   canRead,
   conflict,
-  decodeCursor,
-  encodeCursor,
   invalid,
   isUniqueViolation,
   MODULE_KEY,
   newQrToken,
   notFound,
-  pageFrom,
   stale,
 } from './common';
 import { itemEntity } from './entities';
@@ -41,7 +38,6 @@ import {
   type ValidItem,
 } from './item-import';
 import {
-  afterCursor,
   belowMinFilter,
   belowMinIds,
   itemSearch,
@@ -176,31 +172,31 @@ export class ItemsService {
   async list(query: ItemQuery): Promise<ItemPage> {
     const storeId = await this.store.id();
     const ids = query.belowMin ? await belowMinIds(this.prisma, storeId) : [];
-    const rows = await this.prisma.item.findMany({
-      where: {
-        AND: [
-          query.status === 'ALL' ? {} : { status: query.status },
-          query.brandId ? { brandId: query.brandId } : {},
-          query.machineModelId
-            ? {
-                machineModels: {
-                  some: { machineModelId: query.machineModelId },
-                },
-              }
-            : {},
-          itemSearch(query.q),
-          belowMinFilter(query.belowMin, ids),
-          afterCursor(query.cursor ? decodeCursor(query.cursor) : null),
-        ],
-      },
-      select: summarySelect(storeId),
-      orderBy: [{ partNo: 'asc' }, { id: 'asc' }],
-      take: query.limit + 1,
-    });
-    const page = pageFrom(rows, query.limit, (r) =>
-      encodeCursor(r.partNo, r.id),
-    );
-    return { items: page.rows.map(toSummary), nextCursor: page.nextCursor };
+    const where: Prisma.ItemWhereInput = {
+      AND: [
+        query.status === 'ALL' ? {} : { status: query.status },
+        query.brandId ? { brandId: query.brandId } : {},
+        query.machineModelId
+          ? {
+              machineModels: {
+                some: { machineModelId: query.machineModelId },
+              },
+            }
+          : {},
+        itemSearch(query.q),
+        belowMinFilter(query.belowMin, ids),
+      ],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.item.findMany({
+        where,
+        select: summarySelect(storeId),
+        orderBy: [{ partNo: 'asc' }, { id: 'asc' }],
+        ...pageWindow(query),
+      }),
+      this.prisma.item.count({ where }),
+    ]);
+    return { items: rows.map(toSummary), ...pageMeta(query, total) };
   }
 
   async detail(policy: Policy, id: string): Promise<ItemDetail> {

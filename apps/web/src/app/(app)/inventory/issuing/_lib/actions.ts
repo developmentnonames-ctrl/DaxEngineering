@@ -68,7 +68,7 @@ export async function searchCustomers(q: string): Promise<PickerOption[]> {
       `/parties/customers${toQuery({ q: query.data || undefined, active: 'true', limit: 20 })}`,
       (d) => CustomerPage.parse(d),
     ),
-    { items: [], nextCursor: null },
+    { items: [], total: 0, page: 1, limit: 20 },
   );
   return page.items.map((c) => ({ value: c.id, label: c.name }));
 }

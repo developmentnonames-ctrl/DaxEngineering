@@ -15,12 +15,12 @@ import {
   Empty,
   Mono,
   PageHead,
+  Pager,
   SectionCard,
 } from '@dax/web-shell';
 import { LinkButton } from '../../../../../components/links';
 import { ListFilters } from '../../../../../components/list-filters';
-import { Pager } from '../../../../../components/pager';
-import { formatDateTime } from '../../../../../lib/format';
+import { formatCount, formatDateTime } from '../../../../../lib/format';
 import { flatten, type SearchParams } from '../../../../../lib/query';
 import { requirePermission } from '../../../../../lib/server';
 import { listMrns } from '../_lib/data';
@@ -63,7 +63,7 @@ export default async function MrnListPage({
       <SectionCard
         flush
         title="MRNs"
-        note={`${page.items.length}${page.nextCursor ? '+' : ''} shown`}
+        note={`${formatCount(page.total)} total`}
         toolbar={
           <ListFilters
             searchPlaceholder="MRN number, job number or customer"
@@ -154,8 +154,14 @@ export default async function MrnListPage({
             </Box>
           </>
         )}
+        <Pager
+          path={`${BASE}/mrns`}
+          query={query}
+          total={page.total}
+          page={page.page}
+          limit={page.limit}
+        />
       </SectionCard>
-      <Pager path={`${BASE}/mrns`} query={query} nextCursor={page.nextCursor} />
     </>
   );
 }
